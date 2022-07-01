@@ -1,0 +1,9 @@
+query PokemonDB{
+#    pokemon(name: "Bulbasaur") {
+#        image
+#
+#    }
+    pokemons(first: 10) {
+        name
+    }
+}
