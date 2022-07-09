@@ -3,7 +3,7 @@ query PokemonDB{
 #        image
 #
 #    }
-    pokemons(first: 10) {
+    pokemons(first: 20) {
         name
     }
 }

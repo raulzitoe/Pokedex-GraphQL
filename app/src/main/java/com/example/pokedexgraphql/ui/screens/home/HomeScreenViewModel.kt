@@ -11,9 +11,9 @@ import kotlinx.coroutines.launch
 class HomeScreenViewModel : ViewModel() {
     val pokemons: MutableState<List<PokemonDBQuery.Pokemon>> = mutableStateOf(emptyList())
 
-    fun getPokemons(){
+    fun getPokemons() {
         viewModelScope.launch {
-             GraphQLManager.getPokemons().data?.pokemons?.mapNotNull { it }?.let {
+            GraphQLManager.getPokemons().data?.pokemons?.mapNotNull { it }?.let {
                 pokemons.value = it
             }
         }
