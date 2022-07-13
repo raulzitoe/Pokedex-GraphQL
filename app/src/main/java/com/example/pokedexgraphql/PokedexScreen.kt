@@ -18,13 +18,17 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.pokedexgraphql.ui.navigation.Screen
 import com.example.pokedexgraphql.ui.navigation.SetupNavGraph
+import com.example.pokedexgraphql.ui.screens.home.HomeScreenViewModel
 
 @Composable
-fun PokedexScreen() {
+fun PokedexScreen(
+    viewModel: HomeScreenViewModel
+) {
     val navController = rememberNavController()
 
     BoxWithConstraints(
@@ -41,7 +45,7 @@ fun PokedexScreen() {
                 modifier = Modifier
                     .padding(start = 20.dp, end = 20.dp, top = 40.dp)
             ) {
-                DrawMiniScreen(navController = navController)
+                DrawMiniScreen(navController = navController, viewModel)
             }
             Box(
                 modifier = Modifier
@@ -67,7 +71,8 @@ fun DrawBackground() {
 }
 
 @Composable
-fun DrawMiniScreen(navController: NavHostController) {
+fun DrawMiniScreen(navController: NavHostController,
+viewModel: HomeScreenViewModel) {
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxWidth()
@@ -87,7 +92,7 @@ fun DrawMiniScreen(navController: NavHostController) {
                 .padding(start = 10.dp, end = 14.dp, bottom = 60.dp, top = 20.dp)
                 .background(Color.Blue),
         ) {
-            SetupNavGraph(navController = navController)
+            SetupNavGraph(navController = navController, viewModel)
         }
 
     }
