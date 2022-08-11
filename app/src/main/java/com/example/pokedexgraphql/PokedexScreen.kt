@@ -19,6 +19,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.pokedexgraphql.ui.navigation.Screen
@@ -38,7 +39,12 @@ fun PokedexScreen(
     ) {
         DrawBackground()
         Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
-            Box(modifier = Modifier.fillMaxWidth().height(100.dp).padding(top = 30.dp)){
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(100.dp)
+                    .padding(top = 30.dp)
+            ) {
 
             }
             Box(
@@ -52,7 +58,7 @@ fun PokedexScreen(
                     .align(Alignment.End)
                     .padding(end = 50.dp, top = 10.dp)
             ) {
-                DirectionalButtons(navController = navController)
+                DirectionalButtons(navController = navController, viewModel)
             }
         }
     }
@@ -71,8 +77,10 @@ fun DrawBackground() {
 }
 
 @Composable
-fun DrawMiniScreen(navController: NavHostController,
-viewModel: HomeScreenViewModel) {
+fun DrawMiniScreen(
+    navController: NavHostController,
+    viewModel: HomeScreenViewModel
+) {
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxWidth()
@@ -99,15 +107,22 @@ viewModel: HomeScreenViewModel) {
 }
 
 @Composable
-fun DirectionalButtons(navController: NavHostController) {
+fun DirectionalButtons(navController: NavHostController, viewModel: HomeScreenViewModel) {
     Column(
         verticalArrangement = Arrangement.spacedBy(0.dp)
     ) {
         Button(
-            onClick = { navController.navigate(Screen.Second.route) },
-            content = { Icon(Icons.Filled.PlayArrow, "", modifier = Modifier
-                .rotate(270f)
-                .fillMaxSize(0.8f)) },
+            onClick = {
+                if (viewModel.selectedIndex.value == 0) return@Button
+                viewModel.selectedIndex.value -= 1
+            },
+            content = {
+                Icon(
+                    Icons.Filled.PlayArrow, "", modifier = Modifier
+                        .rotate(270f)
+                        .fillMaxSize(0.8f)
+                )
+            },
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
                 .width(35.dp)
@@ -117,10 +132,14 @@ fun DirectionalButtons(navController: NavHostController) {
         )
         Row {
             Button(
-                onClick = { navController.navigate(Screen.Second.route) },
-                content = { Icon(Icons.Filled.PlayArrow, "", modifier = Modifier
-                    .rotate(180f)
-                    .fillMaxSize(0.8f)) },
+                onClick = { navController.navigateUp() },
+                content = {
+                    Icon(
+                        Icons.Filled.PlayArrow, "", modifier = Modifier
+                            .rotate(180f)
+                            .fillMaxSize(0.8f)
+                    )
+                },
                 shape = RoundedCornerShape(topStart = 10.dp, bottomStart = 10.dp),
                 modifier = Modifier
                     .height(35.dp)
@@ -128,7 +147,7 @@ fun DirectionalButtons(navController: NavHostController) {
                 contentPadding = PaddingValues(start = 0.dp)
             )
             Button(
-                onClick = {  },
+                onClick = { },
                 shape = RoundedCornerShape(0.dp),
                 modifier = Modifier
                     .height(35.dp)
@@ -136,8 +155,14 @@ fun DirectionalButtons(navController: NavHostController) {
                 content = {}
             )
             Button(
-                onClick = { navController.navigate(Screen.Second.route) },
-                content = { Icon(Icons.Filled.PlayArrow, "", modifier = Modifier.fillMaxSize(0.8f)) },
+                onClick = { navController.navigate("${Screen.Second.route}?pokeName=${viewModel.pokemons.value[viewModel.selectedIndex.value].name}") },
+                content = {
+                    Icon(
+                        Icons.Filled.PlayArrow,
+                        "",
+                        modifier = Modifier.fillMaxSize(0.8f)
+                    )
+                },
                 shape = RoundedCornerShape(bottomEnd = 10.dp, topEnd = 10.dp),
                 modifier = Modifier
                     .height(35.dp)
@@ -147,10 +172,17 @@ fun DirectionalButtons(navController: NavHostController) {
             )
         }
         Button(
-            onClick = { navController.navigate(Screen.Second.route) },
-            content = { Icon(Icons.Filled.PlayArrow, "", modifier = Modifier
-                .fillMaxSize(0.8f)
-                .rotate(90f)) },
+            onClick = {
+                if (viewModel.selectedIndex.value == viewModel.pokemons.value.size - 1) return@Button
+                viewModel.selectedIndex.value += 1
+            },
+            content = {
+                Icon(
+                    Icons.Filled.PlayArrow, "", modifier = Modifier
+                        .fillMaxSize(0.8f)
+                        .rotate(90f)
+                )
+            },
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
                 .width(35.dp)
@@ -174,8 +206,8 @@ fun DirectionalButtons(navController: NavHostController) {
 //    DrawMiniScreen(navController = rememberNavController())
 //}
 
-@Preview
-@Composable
-fun DirectionalButtonsPreview() {
-    DirectionalButtons(navController = rememberNavController())
-}
+//@Preview
+//@Composable
+//fun DirectionalButtonsPreview() {
+//    DirectionalButtons(navController = rememberNavController())
+//}

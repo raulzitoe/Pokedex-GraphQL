@@ -14,11 +14,14 @@ import com.example.pokedexgraphql.ui.screens.home.HomeScreenViewModel
 
 @Composable
 fun SecondScreen(
-    navController: NavHostController, viewModel: HomeScreenViewModel
+    navController: NavHostController, viewModel: HomeScreenViewModel, pokeName: String
 ) {
+    viewModel.getPokemonByName(pokeName)
     Box(modifier = Modifier.wrapContentSize()) {
         Column {
             Text(text = "PAGE 2")
+            Text(text = viewModel.pokemon.value.name ?: "")
+            Text(text = viewModel.pokemon.value.weight?.minimum ?: "")
         }
     }
 }
