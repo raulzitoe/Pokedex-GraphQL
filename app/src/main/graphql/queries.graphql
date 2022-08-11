@@ -1,9 +1,18 @@
 query PokemonDB{
-#    pokemon(name: "Bulbasaur") {
-#        image
-#
-#    }
     pokemons(first: 20) {
         name
+    }
+}
+
+query PokemonByName ($name: String){
+    pokemon(name: $name) {
+        name
+        image
+        weight{
+            minimum
+        }
+        height{
+            minimum
+        }
     }
 }
