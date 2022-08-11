@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.example.pokedexgraphql.ui.screens.HomeScreen
 import com.example.pokedexgraphql.ui.screens.SecondScreen
 import com.example.pokedexgraphql.ui.screens.home.HomeScreenViewModel
@@ -20,9 +21,10 @@ fun SetupNavGraph(navController: NavHostController, viewModel: HomeScreenViewMod
             HomeScreen(navController, viewModel)
         }
         composable(
-            route = Screen.Second.route
+            route = "${Screen.Second.route}?pokeName={pokeName}",
+            arguments = listOf(navArgument("pokeName") { defaultValue = "" })
         ) {
-            SecondScreen(navController, viewModel)
+            SecondScreen(navController, viewModel, pokeName = it.arguments?.getString("pokeName","") ?: "")
         }
     }
 }
