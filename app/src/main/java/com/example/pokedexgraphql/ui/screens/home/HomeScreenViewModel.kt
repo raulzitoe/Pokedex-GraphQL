@@ -18,6 +18,7 @@ import javax.inject.Inject
 class HomeScreenViewModel @Inject constructor() : ViewModel() {
     val pokemons: MutableState<List<PokemonDBQuery.Pokemon>> = mutableStateOf(emptyList())
     var selectedIndex = mutableStateOf(0)
+    var pageIndex = mutableStateOf(1)
     val listState = LazyListState(0, 0)
     val pokemon: MutableState<PokemonByNameQuery.Pokemon> = mutableStateOf(PokemonByNameQuery.Pokemon(
         name = null, weight = null, height = null, image = null))
@@ -31,6 +32,7 @@ class HomeScreenViewModel @Inject constructor() : ViewModel() {
     }
 
     fun getPokemonByName(name: String) {
+
         viewModelScope.launch {
             GraphQLManager.getPokemonByName(name).data?.pokemon?.let {
                 pokemon.value = it
@@ -42,5 +44,10 @@ class HomeScreenViewModel @Inject constructor() : ViewModel() {
         viewModelScope.launch {
             listState.animateScrollToItem(selectedIndex.value)
         }
+    }
+
+    fun clearPokemon() {
+        pokemon.value = PokemonByNameQuery.Pokemon(
+            name = null, weight = null, height = null, image = null)
     }
 }
