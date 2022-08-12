@@ -1,5 +1,6 @@
 package com.example.pokedexgraphql
 
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -25,12 +26,14 @@ import androidx.navigation.compose.rememberNavController
 import com.example.pokedexgraphql.ui.navigation.Screen
 import com.example.pokedexgraphql.ui.navigation.SetupNavGraph
 import com.example.pokedexgraphql.ui.screens.home.HomeScreenViewModel
+import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun PokedexScreen(
     viewModel: HomeScreenViewModel
 ) {
-    val navController = rememberNavController()
+    val navController = rememberAnimatedNavController()
 
     BoxWithConstraints(
         modifier = Modifier
@@ -132,7 +135,12 @@ fun DirectionalButtons(navController: NavHostController, viewModel: HomeScreenVi
         )
         Row {
             Button(
-                onClick = { navController.navigateUp() },
+                onClick = {
+                    if (viewModel.selectedIndex.value == 2) {
+                        viewModel.clearPokemon()
+                    }
+                    navController.navigateUp()
+                },
                 content = {
                     Icon(
                         Icons.Filled.PlayArrow, "", modifier = Modifier
@@ -155,7 +163,14 @@ fun DirectionalButtons(navController: NavHostController, viewModel: HomeScreenVi
                 content = {}
             )
             Button(
-                onClick = { navController.navigate("${Screen.Second.route}?pokeName=${viewModel.pokemons.value[viewModel.selectedIndex.value].name}") },
+                onClick = {
+                    when (viewModel.pageIndex.value) {
+                        1 -> navController.navigate("${Screen.Second.route}?pokeName=${viewModel.pokemons.value[viewModel.selectedIndex.value].name}")
+                        2 -> navController.navigate(Screen.Third.route)
+                    }
+
+
+                },
                 content = {
                     Icon(
                         Icons.Filled.PlayArrow,

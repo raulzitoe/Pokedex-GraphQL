@@ -26,6 +26,8 @@ fun HomeScreen(
     navController: NavHostController, viewModel: HomeScreenViewModel
 ) {
     viewModel.getPokemons()
+    viewModel.pageIndex.value = 1
+
     val listState = remember { viewModel.listState }
     val coroutineScope = rememberCoroutineScope()
     val selectedIndex = remember { mutableStateOf(0) }
@@ -70,7 +72,7 @@ fun PokemonItem(
     pokemon: PokemonDBQuery.Pokemon
 ) {
     Text(
-        text = pokemon.name + "$index",
+        text = pokemon.number + " - " + pokemon.name,
         modifier = Modifier
             .clickable {
                 viewModel.selectedIndex.value = index
