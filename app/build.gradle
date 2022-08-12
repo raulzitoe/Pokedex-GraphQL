@@ -7,12 +7,12 @@ plugins {
 }
 
 android {
-    compileSdk 32
+    compileSdk 33
 
     defaultConfig {
         applicationId "com.example.pokedexgraphql"
         minSdk 23
-        targetSdk 32
+        targetSdk 33
         versionCode 1
         versionName "1.0"
 
@@ -94,7 +94,11 @@ dependencies {
     implementation 'androidx.hilt:hilt-navigation-compose:1.0.0'
     kapt "com.google.dagger:hilt-compiler:2.42"
 
+    //Coil
+    implementation "io.coil-kt:coil-compose:2.1.0"
 
+    //Compose Navigation Animation
+    implementation "com.google.accompanist:accompanist-navigation-animation:0.26.1-alpha"
 }
 
 apollo {
