@@ -1,6 +1,7 @@
 query PokemonDB{
     pokemons(first: 20) {
         name
+        number
     }
 }
 
