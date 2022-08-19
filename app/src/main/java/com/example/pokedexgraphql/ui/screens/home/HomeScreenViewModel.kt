@@ -20,8 +20,26 @@ class HomeScreenViewModel @Inject constructor() : ViewModel() {
     var selectedIndex = mutableStateOf(0)
     var pageIndex = mutableStateOf(1)
     val listState = LazyListState(0, 0)
-    val pokemon: MutableState<PokemonByNameQuery.Pokemon> = mutableStateOf(PokemonByNameQuery.Pokemon(
-        name = null, weight = null, height = null, image = null))
+    val pokemon: MutableState<PokemonByNameQuery.Pokemon> = mutableStateOf(
+        PokemonByNameQuery.Pokemon(
+            name = null,
+            weight = null,
+            height = null,
+            image = null,
+            id = "",
+            number = null,
+            classification = null,
+            types = null,
+            resistant = null,
+            attacks = null,
+            weaknesses = null,
+            fleeRate = null,
+            maxCP = null,
+            evolutions = null,
+            evolutionRequirements = null,
+            maxHP = null
+        )
+    )
 
     fun getPokemons() {
         viewModelScope.launch {
@@ -40,7 +58,18 @@ class HomeScreenViewModel @Inject constructor() : ViewModel() {
         }
     }
 
-    fun animateScroll (){
+    fun getPokemonAttacks(): String {
+        val list: MutableList<String> = mutableListOf()
+        pokemon.value.attacks?.fast?.map { item -> item?.name ?: "" }?.let {
+            list.addAll(it)
+        }
+        pokemon.value.attacks?.special?.map { item -> item?.name ?: "" }?.let {
+            list.addAll(it)
+        }
+        return list.joinToString()
+    }
+
+    fun animateScroll() {
         viewModelScope.launch {
             listState.animateScrollToItem(selectedIndex.value)
         }
@@ -48,6 +77,22 @@ class HomeScreenViewModel @Inject constructor() : ViewModel() {
 
     fun clearPokemon() {
         pokemon.value = PokemonByNameQuery.Pokemon(
-            name = null, weight = null, height = null, image = null)
+            name = null,
+            weight = null,
+            height = null,
+            image = null,
+            id = "",
+            number = null,
+            classification = null,
+            types = null,
+            resistant = null,
+            attacks = null,
+            weaknesses = null,
+            fleeRate = null,
+            maxCP = null,
+            evolutions = null,
+            evolutionRequirements = null,
+            maxHP = null
+        )
     }
 }

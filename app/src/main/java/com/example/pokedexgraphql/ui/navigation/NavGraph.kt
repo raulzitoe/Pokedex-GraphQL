@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.navArgument
+import com.example.pokedexgraphql.ui.screens.FourthScreen
 import com.example.pokedexgraphql.ui.screens.HomeScreen
 import com.example.pokedexgraphql.ui.screens.SecondScreen
 import com.example.pokedexgraphql.ui.screens.ThirdScreen
@@ -51,6 +52,15 @@ fun SetupNavGraph(navController: NavHostController, viewModel: HomeScreenViewMod
             popExitTransition = {slideOutOfContainer(AnimatedContentScope.SlideDirection.Right, animationSpec = tween(700))}
         ) {
             ThirdScreen(viewModel)
+        }
+        composable(
+            route = Screen.Fourth.route,
+            enterTransition = {slideIntoContainer(AnimatedContentScope.SlideDirection.Left, animationSpec = tween(700))},
+            exitTransition = {slideOutOfContainer(AnimatedContentScope.SlideDirection.Left, animationSpec = tween(700))},
+            popEnterTransition = {slideIntoContainer(AnimatedContentScope.SlideDirection.Right, animationSpec = tween(700))},
+            popExitTransition = {slideOutOfContainer(AnimatedContentScope.SlideDirection.Right, animationSpec = tween(700))}
+        ) {
+            FourthScreen(navController, viewModel)
         }
     }
 }

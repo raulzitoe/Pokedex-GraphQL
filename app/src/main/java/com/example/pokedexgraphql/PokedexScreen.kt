@@ -1,31 +1,36 @@
 package com.example.pokedexgraphql
 
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.animateColor
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.example.pokedexgraphql.ui.navigation.Screen
 import com.example.pokedexgraphql.ui.navigation.SetupNavGraph
 import com.example.pokedexgraphql.ui.screens.home.HomeScreenViewModel
+import com.example.pokedexgraphql.utils.OvalShape
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 
 @OptIn(ExperimentalAnimationApi::class)
@@ -34,6 +39,16 @@ fun PokedexScreen(
     viewModel: HomeScreenViewModel
 ) {
     val navController = rememberAnimatedNavController()
+    val infiniteTransition = rememberInfiniteTransition()
+
+    val animatedColor by infiniteTransition.animateColor(
+        initialValue = Color.Red,
+        targetValue = Color.Blue,
+        animationSpec = infiniteRepeatable(
+            animation = tween(500),
+            repeatMode = RepeatMode.Reverse
+        )
+    )
 
     BoxWithConstraints(
         modifier = Modifier
@@ -42,25 +57,40 @@ fun PokedexScreen(
     ) {
         DrawBackground()
         Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
-            Box(
+            Surface(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(100.dp)
-                    .padding(top = 30.dp)
+                    .height(140.dp)
+                    .padding(top = 30.dp),
+                color = Color.Transparent
             ) {
-
+                Row(
+                    modifier = Modifier.padding(start = 10.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    LargeCamera()
+                    Led(modifier = Modifier.size(30.dp), animatedColor = animatedColor)
+                    Led(modifier = Modifier.size(30.dp), animatedColor = animatedColor)
+                    Led(modifier = Modifier.size(30.dp), animatedColor = animatedColor)
+                }
             }
             Box(
                 modifier = Modifier
-                    .padding(start = 20.dp, end = 20.dp, top = 40.dp)
+                    .padding(start = 20.dp, end = 20.dp, top = 0.dp)
             ) {
                 DrawMiniScreen(navController = navController, viewModel)
             }
-            Box(
-                modifier = Modifier
-                    .align(Alignment.End)
-                    .padding(end = 50.dp, top = 10.dp)
+            Row(
+                horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 20.dp)
             ) {
+                DrawSpeaker()
+                StartButton(
+                    navController = navController,
+                    modifier = Modifier.padding(10.dp),
+                    viewModel = viewModel
+                )
                 DirectionalButtons(navController = navController, viewModel)
             }
         }
@@ -136,7 +166,7 @@ fun DirectionalButtons(navController: NavHostController, viewModel: HomeScreenVi
         Row {
             Button(
                 onClick = {
-                    if (viewModel.selectedIndex.value == 2) {
+                    if (viewModel.pageIndex.value == 2) {
                         viewModel.clearPokemon()
                     }
                     navController.navigateUp()
@@ -167,6 +197,7 @@ fun DirectionalButtons(navController: NavHostController, viewModel: HomeScreenVi
                     when (viewModel.pageIndex.value) {
                         1 -> navController.navigate("${Screen.Second.route}?pokeName=${viewModel.pokemons.value[viewModel.selectedIndex.value].name}")
                         2 -> navController.navigate(Screen.Third.route)
+                        3 -> navController.navigate(Screen.Fourth.route)
                     }
 
 
@@ -207,6 +238,118 @@ fun DirectionalButtons(navController: NavHostController, viewModel: HomeScreenVi
         )
     }
 
+}
+
+@Composable
+fun StartButton(
+    navController: NavHostController,
+    viewModel: HomeScreenViewModel,
+    modifier: Modifier = Modifier
+) {
+    Surface(modifier = modifier, color = Color.Transparent) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(text = "Start")
+            Button(
+                onClick = {
+                    if (viewModel.pageIndex.value != 1) {
+                        navController.navigate(Screen.Home.route)
+                    }
+                },
+                modifier = Modifier.size(height = 10.dp, width = 40.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.DarkGray)
+            ) {
+            }
+        }
+    }
+}
+
+@Composable
+fun DrawSpeaker(modifier: Modifier = Modifier) {
+    Image(
+        painter = painterResource(id = R.drawable.ic_speaker_grill),
+        modifier = Modifier.size(width = 100.dp, height = 100.dp),
+        contentDescription = "",
+    )
+}
+
+@Composable
+fun Led(modifier: Modifier = Modifier, animatedColor: Color = Color.Yellow) {
+    Box(modifier = modifier.size(100.dp), contentAlignment = Alignment.Center) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .clip(shape = CircleShape)
+                .background(Color(0xFF001460))
+        ) {
+
+        }
+        Box(
+            modifier = Modifier
+                .fillMaxSize(0.75f)
+                .clip(shape = CircleShape)
+                .background(animatedColor)
+        )
+    }
+}
+
+@Composable
+fun LargeCamera(modifier: Modifier = Modifier) {
+    BoxWithConstraints(modifier = modifier.size(100.dp), contentAlignment = Alignment.Center) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .offset(x = 5.dp, y = 2.dp)
+                .clip(shape = CircleShape)
+                .background(Color(0xFF70225C))
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .shadow(
+                    10
+                        .dp, CircleShape, ambientColor = Color.Black, spotColor = Color.Black
+                )
+                .clip(shape = CircleShape)
+                .background(Color.White)
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxSize(0.75f)
+                .clip(shape = CircleShape)
+                .background(Color(0xFF001460))
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxSize(0.65f)
+                .clip(shape = CircleShape)
+                .background(Color(0xFF01DBFF))
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(0.17f)
+                .fillMaxHeight(0.30f)
+                .offset(x = (-14).dp, y = (-14).dp)
+                .rotate(45f)
+                .clip(OvalShape(2.dp))
+                .background(Color.White),
+            contentAlignment = Alignment.Center
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(0.85f)
+                    .fillMaxHeight(0.85f)
+                    .clip(OvalShape(2.dp))
+                    .background(Color(0xFF70E0E1))
+            )
+        }
+    }
+}
+
+
+@Preview(showBackground = true)
+@Composable
+fun Preview() {
+    LargeCamera()
 }
 
 //@Preview(showBackground = true)
