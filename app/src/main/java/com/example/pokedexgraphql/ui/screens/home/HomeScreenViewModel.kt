@@ -1,17 +1,22 @@
 package com.example.pokedexgraphql.ui.screens.home
 
+import android.content.Context
+import android.speech.tts.TextToSpeech
+import android.util.Log
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.pokedexgraphql.GraphQLManager
+import com.example.pokedexgraphql.NotePosition
 import com.example.pokedexgraphql.graphql.PokemonByNameQuery
 import com.example.pokedexgraphql.graphql.PokemonDBQuery
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import java.util.*
 import javax.inject.Inject
 
 @HiltViewModel
@@ -40,6 +45,13 @@ class HomeScreenViewModel @Inject constructor() : ViewModel() {
             maxHP = null
         )
     )
+    var noteState = mutableStateOf(NotePosition.Start)
+    var noteOffsetValue = mutableStateOf(NoteAnimationValue.START.step)
+    private  var  textToSpeech:TextToSpeech? = null
+
+    enum class NoteAnimationValue(val step: Dp){
+        START(2.dp), FINISH(20.dp)
+    }
 
     fun getPokemons() {
         viewModelScope.launch {
@@ -50,7 +62,6 @@ class HomeScreenViewModel @Inject constructor() : ViewModel() {
     }
 
     fun getPokemonByName(name: String) {
-
         viewModelScope.launch {
             GraphQLManager.getPokemonByName(name).data?.pokemon?.let {
                 pokemon.value = it
@@ -94,5 +105,24 @@ class HomeScreenViewModel @Inject constructor() : ViewModel() {
             evolutionRequirements = null,
             maxHP = null
         )
+    }
+
+    fun textToSpeech(context: Context){
+        textToSpeech = TextToSpeech(
+            context
+        ) {
+            if (it == TextToSpeech.SUCCESS) {
+                textToSpeech?.let { txtToSpeech ->
+                    txtToSpeech.language = Locale.US
+                    txtToSpeech.setSpeechRate(1.0f)
+                    txtToSpeech.speak(
+                        pokemons.value[selectedIndex.value].name,
+                        TextToSpeech.QUEUE_ADD,
+                        null,
+                        null
+                    )
+                }
+            }
+        }
     }
 }

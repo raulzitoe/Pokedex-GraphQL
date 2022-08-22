@@ -2,10 +2,7 @@ package com.example.pokedexgraphql
 
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateColor
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -14,17 +11,19 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.example.pokedexgraphql.ui.navigation.Screen
@@ -40,6 +39,24 @@ fun PokedexScreen(
 ) {
     val navController = rememberAnimatedNavController()
     val infiniteTransition = rememberInfiniteTransition()
+    val noteIsVisibleState = remember { mutableStateOf(false) }
+    val speakTextState = remember { mutableStateOf(false) }
+    val context = LocalContext.current
+
+    if(speakTextState.value){
+        viewModel.textToSpeech(context)
+        speakTextState.value = false
+    }
+
+    val offsetNoteAnimation by animateDpAsState(
+        targetValue = viewModel.noteOffsetValue.value,
+        animationSpec = repeatable(
+            iterations = 7,
+            animation = tween(durationMillis = 200),
+            repeatMode = RepeatMode.Reverse
+        ),
+        finishedListener = { noteIsVisibleState.value = false }
+    )
 
     val animatedColor by infiniteTransition.animateColor(
         initialValue = Color.Red,
@@ -85,13 +102,21 @@ fun PokedexScreen(
                     .fillMaxWidth()
                     .padding(top = 20.dp)
             ) {
-                DrawSpeaker()
+                DrawSpeaker(
+                    offsetNoteAnimation = offsetNoteAnimation,
+                    noteIsVisible = noteIsVisibleState.value
+                )
                 StartButton(
                     navController = navController,
                     modifier = Modifier.padding(10.dp),
                     viewModel = viewModel
                 )
-                DirectionalButtons(navController = navController, viewModel)
+                DirectionalButtons(
+                    navController = navController,
+                    viewModel,
+                    noteIsVisibleState = noteIsVisibleState,
+                    speakTextState = speakTextState
+                )
             }
         }
     }
@@ -140,14 +165,29 @@ fun DrawMiniScreen(
 }
 
 @Composable
-fun DirectionalButtons(navController: NavHostController, viewModel: HomeScreenViewModel) {
+fun DirectionalButtons(
+    navController: NavHostController,
+    viewModel: HomeScreenViewModel,
+    noteIsVisibleState: MutableState<Boolean>,
+    speakTextState: MutableState<Boolean>
+) {
+
     Column(
         verticalArrangement = Arrangement.spacedBy(0.dp)
     ) {
         Button(
             onClick = {
-                if (viewModel.selectedIndex.value == 0) return@Button
+                if (viewModel.selectedIndex.value == 0 || viewModel.pageIndex.value != 1) return@Button
                 viewModel.selectedIndex.value -= 1
+                noteIsVisibleState.value = true
+                if (viewModel.noteOffsetValue.value == HomeScreenViewModel.NoteAnimationValue.START.step) {
+                    viewModel.noteOffsetValue.value =
+                        HomeScreenViewModel.NoteAnimationValue.FINISH.step
+                } else {
+                    viewModel.noteOffsetValue.value =
+                        HomeScreenViewModel.NoteAnimationValue.START.step
+                }
+                speakTextState.value = true
             },
             content = {
                 Icon(
@@ -166,9 +206,6 @@ fun DirectionalButtons(navController: NavHostController, viewModel: HomeScreenVi
         Row {
             Button(
                 onClick = {
-                    if (viewModel.pageIndex.value == 2) {
-                        viewModel.clearPokemon()
-                    }
                     navController.navigateUp()
                 },
                 content = {
@@ -219,8 +256,17 @@ fun DirectionalButtons(navController: NavHostController, viewModel: HomeScreenVi
         }
         Button(
             onClick = {
-                if (viewModel.selectedIndex.value == viewModel.pokemons.value.size - 1) return@Button
+                if ((viewModel.selectedIndex.value == viewModel.pokemons.value.size - 1) || viewModel.pageIndex.value != 1) return@Button
                 viewModel.selectedIndex.value += 1
+                noteIsVisibleState.value = true
+                if (viewModel.noteOffsetValue.value == HomeScreenViewModel.NoteAnimationValue.START.step) {
+                    viewModel.noteOffsetValue.value =
+                        HomeScreenViewModel.NoteAnimationValue.FINISH.step
+                } else {
+                    viewModel.noteOffsetValue.value =
+                        HomeScreenViewModel.NoteAnimationValue.START.step
+                }
+                speakTextState.value = true
             },
             content = {
                 Icon(
@@ -264,12 +310,23 @@ fun StartButton(
 }
 
 @Composable
-fun DrawSpeaker(modifier: Modifier = Modifier) {
-    Image(
-        painter = painterResource(id = R.drawable.ic_speaker_grill),
-        modifier = Modifier.size(width = 100.dp, height = 100.dp),
-        contentDescription = "",
-    )
+fun DrawSpeaker(modifier: Modifier = Modifier, offsetNoteAnimation: Dp, noteIsVisible: Boolean) {
+    Box() {
+        Image(
+            painter = painterResource(id = R.drawable.ic_speaker_grill),
+            modifier = Modifier.size(width = 100.dp, height = 100.dp),
+            contentDescription = "",
+        )
+        Image(
+            painter = painterResource(R.drawable.ic_music_note),
+            contentDescription = null,
+            modifier = Modifier
+                .height(90.dp)
+                .absoluteOffset(x = offsetNoteAnimation)
+                .alpha(if (noteIsVisible) 1f else 0f)
+        )
+    }
+
 }
 
 @Composable
@@ -343,6 +400,10 @@ fun LargeCamera(modifier: Modifier = Modifier) {
             )
         }
     }
+}
+
+enum class NotePosition {
+    Start, Finish
 }
 
 
