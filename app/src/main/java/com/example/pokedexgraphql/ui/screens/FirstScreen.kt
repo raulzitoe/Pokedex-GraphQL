@@ -1,31 +1,27 @@
 package com.example.pokedexgraphql.ui.screens
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.*
-import androidx.compose.foundation.selection.selectable
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavHostController
 import com.example.pokedexgraphql.graphql.PokemonDBQuery
-import com.example.pokedexgraphql.ui.screens.home.HomeScreenViewModel
+import com.example.pokedexgraphql.viewmodel.PokedexViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 @Composable
-fun HomeScreen(
-    navController: NavHostController, viewModel: HomeScreenViewModel
+fun FirstScreen(
+    viewModel: PokedexViewModel
 ) {
-    viewModel.getPokemons()
     viewModel.pageIndex.value = 1
 
     val listState = remember { viewModel.listState }
@@ -51,7 +47,6 @@ fun HomeScreen(
         }
 
     }
-
 }
 
 fun animate(
@@ -68,7 +63,7 @@ fun animate(
 fun PokemonItem(
     index: Int,
     selected: Boolean,
-    viewModel: HomeScreenViewModel,
+    viewModel: PokedexViewModel,
     pokemon: PokemonDBQuery.Pokemon
 ) {
     Text(

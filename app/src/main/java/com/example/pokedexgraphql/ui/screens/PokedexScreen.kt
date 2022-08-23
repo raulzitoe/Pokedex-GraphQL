@@ -1,4 +1,4 @@
-package com.example.pokedexgraphql
+package com.example.pokedexgraphql.ui.screens
 
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateColor
@@ -25,17 +25,19 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import com.example.pokedexgraphql.R
 import com.example.pokedexgraphql.ui.navigation.Screen
 import com.example.pokedexgraphql.ui.navigation.SetupNavGraph
-import com.example.pokedexgraphql.ui.screens.home.HomeScreenViewModel
+import com.example.pokedexgraphql.viewmodel.PokedexViewModel
 import com.example.pokedexgraphql.utils.OvalShape
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun PokedexScreen(
-    viewModel: HomeScreenViewModel
+    viewModel: PokedexViewModel = hiltViewModel()
 ) {
     val navController = rememberAnimatedNavController()
     val infiniteTransition = rememberInfiniteTransition()
@@ -137,7 +139,7 @@ fun DrawBackground() {
 @Composable
 fun DrawMiniScreen(
     navController: NavHostController,
-    viewModel: HomeScreenViewModel
+    viewModel: PokedexViewModel
 ) {
     BoxWithConstraints(
         modifier = Modifier
@@ -167,7 +169,7 @@ fun DrawMiniScreen(
 @Composable
 fun DirectionalButtons(
     navController: NavHostController,
-    viewModel: HomeScreenViewModel,
+    viewModel: PokedexViewModel,
     noteIsVisibleState: MutableState<Boolean>,
     speakTextState: MutableState<Boolean>
 ) {
@@ -180,12 +182,12 @@ fun DirectionalButtons(
                 if (viewModel.selectedIndex.value == 0 || viewModel.pageIndex.value != 1) return@Button
                 viewModel.selectedIndex.value -= 1
                 noteIsVisibleState.value = true
-                if (viewModel.noteOffsetValue.value == HomeScreenViewModel.NoteAnimationValue.START.step) {
+                if (viewModel.noteOffsetValue.value == PokedexViewModel.NoteAnimationValue.START.step) {
                     viewModel.noteOffsetValue.value =
-                        HomeScreenViewModel.NoteAnimationValue.FINISH.step
+                        PokedexViewModel.NoteAnimationValue.FINISH.step
                 } else {
                     viewModel.noteOffsetValue.value =
-                        HomeScreenViewModel.NoteAnimationValue.START.step
+                        PokedexViewModel.NoteAnimationValue.START.step
                 }
                 speakTextState.value = true
             },
@@ -259,12 +261,12 @@ fun DirectionalButtons(
                 if ((viewModel.selectedIndex.value == viewModel.pokemons.value.size - 1) || viewModel.pageIndex.value != 1) return@Button
                 viewModel.selectedIndex.value += 1
                 noteIsVisibleState.value = true
-                if (viewModel.noteOffsetValue.value == HomeScreenViewModel.NoteAnimationValue.START.step) {
+                if (viewModel.noteOffsetValue.value == PokedexViewModel.NoteAnimationValue.START.step) {
                     viewModel.noteOffsetValue.value =
-                        HomeScreenViewModel.NoteAnimationValue.FINISH.step
+                        PokedexViewModel.NoteAnimationValue.FINISH.step
                 } else {
                     viewModel.noteOffsetValue.value =
-                        HomeScreenViewModel.NoteAnimationValue.START.step
+                        PokedexViewModel.NoteAnimationValue.START.step
                 }
                 speakTextState.value = true
             },
@@ -289,7 +291,7 @@ fun DirectionalButtons(
 @Composable
 fun StartButton(
     navController: NavHostController,
-    viewModel: HomeScreenViewModel,
+    viewModel: PokedexViewModel,
     modifier: Modifier = Modifier
 ) {
     Surface(modifier = modifier, color = Color.Transparent) {
@@ -401,11 +403,6 @@ fun LargeCamera(modifier: Modifier = Modifier) {
         }
     }
 }
-
-enum class NotePosition {
-    Start, Finish
-}
-
 
 @Preview(showBackground = true)
 @Composable

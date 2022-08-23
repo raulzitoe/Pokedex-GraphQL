@@ -12,11 +12,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.pokedexgraphql.ui.navigation.Screen
-import com.example.pokedexgraphql.ui.screens.home.HomeScreenViewModel
+import com.example.pokedexgraphql.viewmodel.PokedexViewModel
 
 @Composable
 fun FourthScreen(
-    navController: NavController, viewModel: HomeScreenViewModel
+    navController: NavController, viewModel: PokedexViewModel
 ) {
     viewModel.pageIndex.value = 4
     Surface(color = Color.Transparent) {

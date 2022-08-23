@@ -1,21 +1,15 @@
 package com.example.pokedexgraphql.ui.screens
 
-import android.util.Log
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import androidx.compose.material.Card
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
@@ -23,14 +17,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.LifecycleOwner
 import com.example.pokedexgraphql.R
-
-import com.example.pokedexgraphql.ui.screens.home.HomeScreenViewModel
+import com.example.pokedexgraphql.viewmodel.PokedexViewModel
 
 @Composable
 fun SecondScreen(
-    navController: NavHostController, viewModel: HomeScreenViewModel, pokeName: String
+    viewModel: PokedexViewModel, pokeName: String
 ) {
     viewModel.pageIndex.value = 2
     val lifecycleOwner = LocalLifecycleOwner.current

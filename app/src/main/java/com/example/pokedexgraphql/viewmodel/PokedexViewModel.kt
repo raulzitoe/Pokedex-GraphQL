@@ -1,17 +1,15 @@
-package com.example.pokedexgraphql.ui.screens.home
+package com.example.pokedexgraphql.viewmodel
 
 import android.content.Context
 import android.speech.tts.TextToSpeech
 import android.util.Log
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.*
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.pokedexgraphql.GraphQLManager
-import com.example.pokedexgraphql.NotePosition
 import com.example.pokedexgraphql.graphql.PokemonByNameQuery
 import com.example.pokedexgraphql.graphql.PokemonDBQuery
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -20,10 +18,10 @@ import java.util.*
 import javax.inject.Inject
 
 @HiltViewModel
-class HomeScreenViewModel @Inject constructor() : ViewModel() {
+class PokedexViewModel @Inject constructor() : ViewModel() {
     val pokemons: MutableState<List<PokemonDBQuery.Pokemon>> = mutableStateOf(emptyList())
-    var selectedIndex = mutableStateOf(0)
-    var pageIndex = mutableStateOf(1)
+    val selectedIndex = mutableStateOf(0)
+    val pageIndex = mutableStateOf(1)
     val listState = LazyListState(0, 0)
     val pokemon: MutableState<PokemonByNameQuery.Pokemon> = mutableStateOf(
         PokemonByNameQuery.Pokemon(
@@ -45,9 +43,12 @@ class HomeScreenViewModel @Inject constructor() : ViewModel() {
             maxHP = null
         )
     )
-    var noteState = mutableStateOf(NotePosition.Start)
-    var noteOffsetValue = mutableStateOf(NoteAnimationValue.START.step)
+    val noteOffsetValue = mutableStateOf(NoteAnimationValue.START.step)
     private  var  textToSpeech:TextToSpeech? = null
+
+    init {
+        getPokemons()
+    }
 
     enum class NoteAnimationValue(val step: Dp){
         START(2.dp), FINISH(20.dp)
@@ -55,6 +56,7 @@ class HomeScreenViewModel @Inject constructor() : ViewModel() {
 
     fun getPokemons() {
         viewModelScope.launch {
+            Log.e("risos", "entrou")
             GraphQLManager.getPokemons().data?.pokemons?.mapNotNull { it }?.let {
                 pokemons.value = it
             }
