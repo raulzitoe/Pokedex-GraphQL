@@ -26,6 +26,10 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.pokedexgraphql.R
+import com.example.pokedexgraphql.ui.state.FirstScreenState
+import com.example.pokedexgraphql.ui.state.FourthScreenState
+import com.example.pokedexgraphql.ui.state.SecondScreenState
+import com.example.pokedexgraphql.ui.state.ThirdScreenState
 import com.example.pokedexgraphql.utils.Constants
 import com.example.pokedexgraphql.viewmodel.PokedexViewModel
 import com.example.pokedexgraphql.utils.OvalShape
@@ -42,6 +46,10 @@ fun PokedexScreen(
     val noteIsVisibleState = remember { mutableStateOf(false) }
     val speakTextState = remember { mutableStateOf(false) }
     val context = LocalContext.current
+    val firstScreenState = viewModel.firstScreenState
+    val secondScreenState = viewModel.secondScreenState
+    val thirdScreenState = viewModel.thirdScreenState
+    val fourthScreenState = viewModel.fourthScreenState
 
     if (speakTextState.value) {
         viewModel.textToSpeech(context)
@@ -95,7 +103,14 @@ fun PokedexScreen(
                 modifier = Modifier
                     .padding(start = 20.dp, end = 20.dp, top = 0.dp)
             ) {
-                DrawMiniScreen(viewModel = viewModel, pageIndex = viewModel.pageIndex.value)
+                DrawMiniScreen(
+                    firstScreenState = firstScreenState,
+                    secondScreenState = secondScreenState,
+                    thirdScreenState = thirdScreenState,
+                    fourthScreenState = fourthScreenState,
+                    viewModel = viewModel,
+                    pageIndex = viewModel.pageIndex.value
+                )
             }
             Row(
                 horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier
@@ -108,12 +123,15 @@ fun PokedexScreen(
                 )
                 StartButton(
                     modifier = Modifier.padding(10.dp),
-                    viewModel = viewModel
+                    onClick = {
+                        viewModel.pageIndex.value = 0
+                    }
                 )
                 DirectionalButtons(
                     viewModel = viewModel,
                     noteIsVisibleState = noteIsVisibleState,
-                    speakTextState = speakTextState
+                    speakTextState = speakTextState,
+                    firstScreenState = firstScreenState
                 )
             }
         }
@@ -136,7 +154,11 @@ fun DrawBackground() {
 @Composable
 fun DrawMiniScreen(
     viewModel: PokedexViewModel,
-    pageIndex: Int
+    pageIndex: Int,
+    firstScreenState: FirstScreenState,
+    secondScreenState: SecondScreenState,
+    thirdScreenState: ThirdScreenState,
+    fourthScreenState: FourthScreenState
 ) {
     val coroutineScope = rememberCoroutineScope()
     val pagerState = rememberPagerState()
@@ -166,20 +188,24 @@ fun DrawMiniScreen(
                 .padding(start = 10.dp, end = 14.dp, bottom = 60.dp, top = 20.dp)
                 .background(Color.Blue),
         ) {
-//            SetupNavGraph(navController = navController, viewModel)
             HorizontalPager(count = 4, state = pagerState) { page ->
                 when (page) {
                     0 -> FirstScreen(
-                        viewModel = viewModel,
-                        listIndex = viewModel.selectedIndex.value
+                        listIndex = viewModel.selectedIndex.value,
+                        listState = viewModel.listState,
+                        onIndexChange = { index -> viewModel.selectedIndex.value = index },
+                        uiState = firstScreenState
                     )
-                    1 -> SecondScreen(viewModel = viewModel, pokeName = "Bulbasaur")
-                    2 -> ThirdScreen(viewModel = viewModel)
-                    3 -> FourthScreen(viewModel = viewModel)
+                    1 -> SecondScreen(
+                        uiState = secondScreenState,
+                        onPageIndexChange = { viewModel.getPokemonByName() },
+                        pageIndex = viewModel.pageIndex.value
+                    )
+                    2 -> ThirdScreen(uiState = thirdScreenState)
+                    3 -> FourthScreen(uiState = fourthScreenState)
                 }
             }
         }
-
     }
 }
 
@@ -187,7 +213,8 @@ fun DrawMiniScreen(
 fun DirectionalButtons(
     viewModel: PokedexViewModel,
     noteIsVisibleState: MutableState<Boolean>,
-    speakTextState: MutableState<Boolean>
+    speakTextState: MutableState<Boolean>,
+    firstScreenState: FirstScreenState
 ) {
 
     Column(
@@ -224,7 +251,7 @@ fun DirectionalButtons(
         Row {
             Button(
                 onClick = {
-                    if(viewModel.pageIndex.value == 0) return@Button
+                    if (viewModel.pageIndex.value == 0) return@Button
                     viewModel.pageIndex.value -= 1
                 },
                 content = {
@@ -270,7 +297,7 @@ fun DirectionalButtons(
         }
         Button(
             onClick = {
-                if ((viewModel.selectedIndex.value == viewModel.pokemons.value.size - 1)) return@Button
+                if ((viewModel.selectedIndex.value == firstScreenState.pokemons.size - 1)) return@Button
                 viewModel.selectedIndex.value += 1
                 noteIsVisibleState.value = true
                 if (viewModel.noteOffsetValue.value == PokedexViewModel.NoteAnimationValue.START.step) {
@@ -302,17 +329,15 @@ fun DirectionalButtons(
 
 @Composable
 fun StartButton(
-    viewModel: PokedexViewModel,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
 ) {
     Surface(modifier = modifier, color = Color.Transparent) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(text = "Start")
             Button(
                 onClick = {
-                    if (viewModel.pageIndex.value != 1) {
-                        //TODO go to list page
-                    }
+                    onClick()
                 },
                 modifier = Modifier.size(height = 10.dp, width = 40.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color.DarkGray)

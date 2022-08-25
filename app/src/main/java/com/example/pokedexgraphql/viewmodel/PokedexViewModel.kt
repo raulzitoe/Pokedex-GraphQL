@@ -11,6 +11,10 @@ import androidx.lifecycle.viewModelScope
 import com.example.pokedexgraphql.GraphQLManager
 import com.example.pokedexgraphql.graphql.PokemonByNameQuery
 import com.example.pokedexgraphql.graphql.PokemonDBQuery
+import com.example.pokedexgraphql.ui.state.FirstScreenState
+import com.example.pokedexgraphql.ui.state.FourthScreenState
+import com.example.pokedexgraphql.ui.state.SecondScreenState
+import com.example.pokedexgraphql.ui.state.ThirdScreenState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import java.util.*
@@ -18,32 +22,20 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PokedexViewModel @Inject constructor() : ViewModel() {
-    val pokemons: MutableState<List<PokemonDBQuery.Pokemon>> = mutableStateOf(emptyList())
+//    val pokemons: MutableState<List<PokemonDBQuery.Pokemon>> = mutableStateOf(emptyList())
     val selectedIndex = mutableStateOf(0)
     val pageIndex = mutableStateOf(0)
     val listState = LazyListState(0, 0)
-    val pokemon: MutableState<PokemonByNameQuery.Pokemon> = mutableStateOf(
-        PokemonByNameQuery.Pokemon(
-            name = null,
-            weight = null,
-            height = null,
-            image = null,
-            id = "",
-            number = null,
-            classification = null,
-            types = null,
-            resistant = null,
-            attacks = null,
-            weaknesses = null,
-            fleeRate = null,
-            maxCP = null,
-            evolutions = null,
-            evolutionRequirements = null,
-            maxHP = null
-        )
-    )
     val noteOffsetValue = mutableStateOf(NoteAnimationValue.START.step)
     private  var  textToSpeech:TextToSpeech? = null
+    var firstScreenState by mutableStateOf(FirstScreenState())
+        private set
+    var secondScreenState by mutableStateOf(SecondScreenState())
+        private set
+    var thirdScreenState by mutableStateOf(ThirdScreenState())
+        private set
+    var fourthScreenState by mutableStateOf(FourthScreenState())
+        private set
 
     init {
         getPokemons()
@@ -56,26 +48,49 @@ class PokedexViewModel @Inject constructor() : ViewModel() {
     private fun getPokemons() {
         viewModelScope.launch {
             GraphQLManager.getPokemons().data?.pokemons?.mapNotNull { it }?.let {
-                pokemons.value = it
+                firstScreenState = FirstScreenState(it)
             }
         }
     }
 
     fun getPokemonByName() {
-        val name = pokemons.value[selectedIndex.value].name ?: ""
+        val name = firstScreenState.pokemons[selectedIndex.value].name ?: ""
         viewModelScope.launch {
             GraphQLManager.getPokemonByName(name).data?.pokemon?.let {
-                pokemon.value = it
+                secondScreenState = SecondScreenState(
+                    name = it.name ?: "",
+                    classification = it.classification ?: "",
+                    image = it.image,
+                )
+
+                thirdScreenState = ThirdScreenState(
+                    name = it.name ?: "",
+                    number = it.number ?: "",
+                    types = it.types?.mapNotNull { type -> type} ?: emptyList(),
+                    maxHP = it.maxHP ?: 0,
+                    maxCP = it.maxCP ?: 0,
+                    minWeight = it.weight?.minimum ?: "",
+                    maxWeight = it.weight?.maximum ?: "",
+                    minHeight = it.height?.minimum ?: "",
+                    maxHeight = it.height?.maximum ?: ""
+                )
+
+                fourthScreenState = FourthScreenState(
+                    resistant = it.resistant?.mapNotNull { resistant -> resistant} ?: emptyList(),
+                    weaknesses = it.weaknesses?.mapNotNull { resistant -> resistant} ?: emptyList(),
+                    attacks = it.attacks?.let { attacks -> getPokemonAttacks(attacks) } ?: "",
+                    evolutions = it.evolutions?.mapNotNull { evolution -> evolution} ?: emptyList()
+                )
             }
         }
     }
 
-    fun getPokemonAttacks(): String {
+    private fun getPokemonAttacks(attacks: PokemonByNameQuery.Attacks): String {
         val list: MutableList<String> = mutableListOf()
-        pokemon.value.attacks?.fast?.map { item -> item?.name ?: "" }?.let {
+        attacks.fast?.map { item -> item?.name ?: "" }?.let {
             list.addAll(it)
         }
-        pokemon.value.attacks?.special?.map { item -> item?.name ?: "" }?.let {
+        attacks.special?.map { item -> item?.name ?: "" }?.let {
             list.addAll(it)
         }
         return list.joinToString()
@@ -87,27 +102,6 @@ class PokedexViewModel @Inject constructor() : ViewModel() {
         }
     }
 
-    fun clearPokemon() {
-        pokemon.value = PokemonByNameQuery.Pokemon(
-            name = null,
-            weight = null,
-            height = null,
-            image = null,
-            id = "",
-            number = null,
-            classification = null,
-            types = null,
-            resistant = null,
-            attacks = null,
-            weaknesses = null,
-            fleeRate = null,
-            maxCP = null,
-            evolutions = null,
-            evolutionRequirements = null,
-            maxHP = null
-        )
-    }
-
     fun textToSpeech(context: Context){
         textToSpeech = TextToSpeech(
             context
@@ -117,7 +111,7 @@ class PokedexViewModel @Inject constructor() : ViewModel() {
                     txtToSpeech.language = Locale.US
                     txtToSpeech.setSpeechRate(1.0f)
                     txtToSpeech.speak(
-                        pokemons.value[selectedIndex.value].name,
+                        firstScreenState.pokemons[selectedIndex.value].name,
                         TextToSpeech.QUEUE_ADD,
                         null,
                         null

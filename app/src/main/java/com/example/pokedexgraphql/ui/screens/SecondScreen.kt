@@ -7,27 +7,25 @@ import androidx.compose.ui.Modifier
 import coil.compose.AsyncImage
 import androidx.compose.material.Card
 import androidx.compose.material3.Surface
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
 import com.example.pokedexgraphql.R
-import com.example.pokedexgraphql.viewmodel.PokedexViewModel
+import com.example.pokedexgraphql.ui.state.SecondScreenState
 
 @Composable
 fun SecondScreen(
-    viewModel: PokedexViewModel, pokeName: String
+    uiState: SecondScreenState,
+    pageIndex: Int,
+    onPageIndexChange: () -> Unit
 ) {
-    LaunchedEffect(viewModel.pageIndex.value){
-        if(viewModel.pageIndex.value == 1){
-            viewModel.getPokemonByName()
+    LaunchedEffect(pageIndex){
+        if(pageIndex == 1){
+            onPageIndexChange()
         }
     }
 
@@ -39,21 +37,21 @@ fun SecondScreen(
             Text(
                 color = Color.White,
                 textAlign = TextAlign.Center,
-                text = viewModel.pokemon.value.name ?: "",
+                text = uiState.name,
                 modifier = Modifier.padding(top = 5.dp)
             )
 
             Text(
                 color = Color.White,
                 textAlign = TextAlign.Center,
-                text = viewModel.pokemon.value.classification ?: "",
+                text = uiState.classification,
                 modifier = Modifier.padding(top = 5.dp, bottom = 5.dp),
                 fontSize = 10.sp
             )
 
             Card {
                 AsyncImage(
-                    model = viewModel.pokemon.value.image ?: R.drawable.ic_downloading,
+                    model = uiState.image ?: R.drawable.ic_downloading,
                     contentDescription = null,
                     modifier = Modifier.padding(5.dp),
                     placeholder = painterResource(R.drawable.ic_downloading)

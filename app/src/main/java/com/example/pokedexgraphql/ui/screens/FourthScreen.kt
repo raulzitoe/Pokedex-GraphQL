@@ -9,12 +9,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.pokedexgraphql.viewmodel.PokedexViewModel
+import com.example.pokedexgraphql.ui.state.FourthScreenState
 
 @Composable
 fun FourthScreen(
-    viewModel: PokedexViewModel
+    uiState: FourthScreenState
 ) {
     Surface(color = Color.Transparent) {
         Column(
@@ -25,19 +26,19 @@ fun FourthScreen(
             Text(
                 color = Color.White,
                 textAlign = TextAlign.Justify,
-                text = "Resistant: " + viewModel.pokemon.value.resistant?.joinToString(),
+                text = "Resistant: " + uiState.resistant.joinToString(),
                 modifier = Modifier.padding(top = 5.dp)
             )
             Text(
                 color = Color.White,
                 textAlign = TextAlign.Justify,
-                text = "Weaknesses: " + viewModel.pokemon.value.weaknesses?.joinToString(),
+                text = "Weaknesses: " + uiState.weaknesses.joinToString(),
                 modifier = Modifier.padding(top = 5.dp)
             )
             Text(
                 color = Color.White,
                 textAlign = TextAlign.Justify,
-                text = "Attacks: " + viewModel.getPokemonAttacks(),
+                text = "Attacks: " + uiState.attacks,
                 modifier = Modifier.padding(top = 5.dp)
             )
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -47,17 +48,24 @@ fun FourthScreen(
                     text = "Evolutions: ",
                     modifier = Modifier.padding(top = 5.dp)
                 )
-                viewModel.pokemon.value.evolutions?.map { item -> item?.name }?.forEach {
+                uiState.evolutions.map { item -> item.name }.forEach {
                     Button(
                         onClick = { },
-                        modifier = Modifier.padding(end = 3.dp).height(30.dp),
+                        modifier = Modifier
+                            .padding(end = 3.dp)
+                            .height(30.dp),
                         contentPadding = PaddingValues(start = 5.dp, end = 5.dp, top = 2.dp, bottom = 2.dp)
                     ) {
                         Text(text = it ?: "")
                     }
                 }
             }
-
         }
     }
+}
+
+@Preview
+@Composable
+fun FourthScreenPreview(){
+    FourthScreen(uiState = FourthScreenState())
 }

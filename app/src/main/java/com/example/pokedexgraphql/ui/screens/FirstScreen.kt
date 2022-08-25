@@ -13,21 +13,23 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.pokedexgraphql.graphql.PokemonDBQuery
-import com.example.pokedexgraphql.viewmodel.PokedexViewModel
+import com.example.pokedexgraphql.ui.state.FirstScreenState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 @Composable
 fun FirstScreen(
-    viewModel: PokedexViewModel, listIndex: Int
+    listIndex: Int,
+    listState: LazyListState,
+    onIndexChange: (Int) -> Unit,
+    uiState: FirstScreenState
 ) {
-    val listState = remember { viewModel.listState }
     val coroutineScope = rememberCoroutineScope()
     val selectedIndex = remember { mutableStateOf(0) }
 
     if (selectedIndex.value != listIndex) {
         selectedIndex.value = listIndex
-        LaunchedEffect(Unit){
+        LaunchedEffect(Unit) {
             animate(coroutineScope, listState, selectedIndex.value)
         }
     }
@@ -36,15 +38,14 @@ fun FirstScreen(
         modifier = Modifier.fillMaxSize(),
         state = listState
     ) {
-        itemsIndexed(viewModel.pokemons.value) { index, pokemon ->
+        itemsIndexed(uiState.pokemons) { index, pokemon ->
             PokemonItem(
                 index = index,
                 selected = listIndex == index,
-                viewModel = viewModel,
-                pokemon = pokemon
+                pokemon = pokemon,
+                onClickItem = { itemIndex -> onIndexChange(itemIndex) }
             )
         }
-
     }
 }
 
@@ -62,14 +63,14 @@ fun animate(
 fun PokemonItem(
     index: Int,
     selected: Boolean,
-    viewModel: PokedexViewModel,
+    onClickItem: (Int) -> Unit,
     pokemon: PokemonDBQuery.Pokemon
 ) {
     Text(
         text = pokemon.number + " - " + pokemon.name,
         modifier = Modifier
             .clickable {
-                viewModel.selectedIndex.value = index
+                onClickItem(index)
             }
             .background(if (selected) MaterialTheme.colors.secondary else Color.Transparent)
             .fillMaxWidth()

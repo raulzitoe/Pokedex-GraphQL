@@ -10,61 +10,72 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.pokedexgraphql.viewmodel.PokedexViewModel
+import com.example.pokedexgraphql.ui.state.ThirdScreenState
 
 @Composable
 fun ThirdScreen(
-    viewModel: PokedexViewModel
+    uiState: ThirdScreenState
 ) {
     Surface(color = Color.Transparent) {
-        Column(modifier = Modifier.fillMaxSize().padding(5.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(5.dp)
+        ) {
             Text(
                 color = Color.White,
                 textAlign = TextAlign.Center,
-                text = "Name: " + viewModel.pokemon.value.name,
+                text = "Name: " + uiState.name,
                 modifier = Modifier.padding(top = 5.dp)
             )
             Text(
                 color = Color.White,
                 textAlign = TextAlign.Center,
-                text = "Number: " + viewModel.pokemon.value.number,
+                text = "Number: " + uiState.number,
                 modifier = Modifier.padding(top = 5.dp)
             )
             Text(
                 color = Color.White,
                 textAlign = TextAlign.Center,
-                text = "Types: " + viewModel.pokemon.value.types?.joinToString(),
+                text = "Types: " + uiState.types.joinToString(),
                 modifier = Modifier.padding(top = 5.dp)
             )
             Row {
                 Text(
                     color = Color.White,
                     textAlign = TextAlign.Center,
-                    text = "Max HP: " + viewModel.pokemon.value.maxHP,
+                    text = "Max HP: " + uiState.maxHP,
                     modifier = Modifier.padding(top = 5.dp)
                 )
                 Text(
                     color = Color.White,
                     textAlign = TextAlign.Center,
-                    text = "Max CP: " + viewModel.pokemon.value.maxCP,
+                    text = "Max CP: " + uiState.maxCP,
                     modifier = Modifier.padding(top = 5.dp, start = 20.dp)
                 )
             }
             Text(
                 color = Color.White,
                 textAlign = TextAlign.Center,
-                text = "Weight: " + viewModel.pokemon.value.weight?.minimum
-                        + " to " + viewModel.pokemon.value.weight?.maximum,
+                text = "Weight: " + uiState.minWeight
+                        + " to " + uiState.maxWeight,
                 modifier = Modifier.padding(top = 5.dp)
             )
             Text(
                 color = Color.White,
                 textAlign = TextAlign.Center,
-                text = "Height: " + viewModel.pokemon.value.height?.minimum
-                        + " to " + viewModel.pokemon.value.height?.maximum,
+                text = "Height: " + uiState.minHeight
+                        + " to " + uiState.maxHeight,
                 modifier = Modifier.padding(top = 5.dp)
             )
         }
     }
+}
+
+@Preview(showBackground = true, backgroundColor = 0x3282F6)
+@Composable
+fun ThirdScreenPreview() {
+    ThirdScreen(uiState = ThirdScreenState())
 }
