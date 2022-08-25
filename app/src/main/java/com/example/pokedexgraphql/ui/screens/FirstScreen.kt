@@ -1,6 +1,5 @@
 package com.example.pokedexgraphql.ui.screens
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,17 +19,17 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun FirstScreen(
-    viewModel: PokedexViewModel
+    viewModel: PokedexViewModel, listIndex: Int
 ) {
-    viewModel.pageIndex.value = 1
-
     val listState = remember { viewModel.listState }
     val coroutineScope = rememberCoroutineScope()
     val selectedIndex = remember { mutableStateOf(0) }
 
-    if (selectedIndex.value != viewModel.selectedIndex.value) {
-        selectedIndex.value = viewModel.selectedIndex.value
-        animate(coroutineScope, listState, selectedIndex.value)
+    if (selectedIndex.value != listIndex) {
+        selectedIndex.value = listIndex
+        LaunchedEffect(Unit){
+            animate(coroutineScope, listState, selectedIndex.value)
+        }
     }
 
     LazyColumn(
@@ -40,7 +39,7 @@ fun FirstScreen(
         itemsIndexed(viewModel.pokemons.value) { index, pokemon ->
             PokemonItem(
                 index = index,
-                selected = viewModel.selectedIndex.value == index,
+                selected = listIndex == index,
                 viewModel = viewModel,
                 pokemon = pokemon
             )

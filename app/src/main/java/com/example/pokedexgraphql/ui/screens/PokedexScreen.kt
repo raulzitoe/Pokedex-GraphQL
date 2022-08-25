@@ -1,6 +1,5 @@
 package com.example.pokedexgraphql.ui.screens
 
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateColor
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
@@ -26,26 +25,25 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavHostController
 import com.example.pokedexgraphql.R
-import com.example.pokedexgraphql.ui.navigation.Screen
-import com.example.pokedexgraphql.ui.navigation.SetupNavGraph
+import com.example.pokedexgraphql.utils.Constants
 import com.example.pokedexgraphql.viewmodel.PokedexViewModel
 import com.example.pokedexgraphql.utils.OvalShape
-import com.google.accompanist.navigation.animation.rememberAnimatedNavController
+import com.google.accompanist.pager.ExperimentalPagerApi
+import com.google.accompanist.pager.HorizontalPager
+import com.google.accompanist.pager.rememberPagerState
+import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun PokedexScreen(
     viewModel: PokedexViewModel = hiltViewModel()
 ) {
-    val navController = rememberAnimatedNavController()
     val infiniteTransition = rememberInfiniteTransition()
     val noteIsVisibleState = remember { mutableStateOf(false) }
     val speakTextState = remember { mutableStateOf(false) }
     val context = LocalContext.current
 
-    if(speakTextState.value){
+    if (speakTextState.value) {
         viewModel.textToSpeech(context)
         speakTextState.value = false
     }
@@ -97,7 +95,7 @@ fun PokedexScreen(
                 modifier = Modifier
                     .padding(start = 20.dp, end = 20.dp, top = 0.dp)
             ) {
-                DrawMiniScreen(navController = navController, viewModel)
+                DrawMiniScreen(viewModel = viewModel, pageIndex = viewModel.pageIndex.value)
             }
             Row(
                 horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier
@@ -109,13 +107,11 @@ fun PokedexScreen(
                     noteIsVisible = noteIsVisibleState.value
                 )
                 StartButton(
-                    navController = navController,
                     modifier = Modifier.padding(10.dp),
                     viewModel = viewModel
                 )
                 DirectionalButtons(
-                    navController = navController,
-                    viewModel,
+                    viewModel = viewModel,
                     noteIsVisibleState = noteIsVisibleState,
                     speakTextState = speakTextState
                 )
@@ -136,11 +132,21 @@ fun DrawBackground() {
     )
 }
 
+@OptIn(ExperimentalPagerApi::class)
 @Composable
 fun DrawMiniScreen(
-    navController: NavHostController,
-    viewModel: PokedexViewModel
+    viewModel: PokedexViewModel,
+    pageIndex: Int
 ) {
+    val coroutineScope = rememberCoroutineScope()
+    val pagerState = rememberPagerState()
+
+    LaunchedEffect(pageIndex) {
+        coroutineScope.launch {
+            pagerState.animateScrollToPage(pageIndex)
+        }
+    }
+
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxWidth()
@@ -160,7 +166,18 @@ fun DrawMiniScreen(
                 .padding(start = 10.dp, end = 14.dp, bottom = 60.dp, top = 20.dp)
                 .background(Color.Blue),
         ) {
-            SetupNavGraph(navController = navController, viewModel)
+//            SetupNavGraph(navController = navController, viewModel)
+            HorizontalPager(count = 4, state = pagerState) { page ->
+                when (page) {
+                    0 -> FirstScreen(
+                        viewModel = viewModel,
+                        listIndex = viewModel.selectedIndex.value
+                    )
+                    1 -> SecondScreen(viewModel = viewModel, pokeName = "Bulbasaur")
+                    2 -> ThirdScreen(viewModel = viewModel)
+                    3 -> FourthScreen(viewModel = viewModel)
+                }
+            }
         }
 
     }
@@ -168,7 +185,6 @@ fun DrawMiniScreen(
 
 @Composable
 fun DirectionalButtons(
-    navController: NavHostController,
     viewModel: PokedexViewModel,
     noteIsVisibleState: MutableState<Boolean>,
     speakTextState: MutableState<Boolean>
@@ -179,7 +195,7 @@ fun DirectionalButtons(
     ) {
         Button(
             onClick = {
-                if (viewModel.selectedIndex.value == 0 || viewModel.pageIndex.value != 1) return@Button
+                if (viewModel.selectedIndex.value == 0) return@Button
                 viewModel.selectedIndex.value -= 1
                 noteIsVisibleState.value = true
                 if (viewModel.noteOffsetValue.value == PokedexViewModel.NoteAnimationValue.START.step) {
@@ -208,7 +224,8 @@ fun DirectionalButtons(
         Row {
             Button(
                 onClick = {
-                    navController.navigateUp()
+                    if(viewModel.pageIndex.value == 0) return@Button
+                    viewModel.pageIndex.value -= 1
                 },
                 content = {
                     Icon(
@@ -233,13 +250,8 @@ fun DirectionalButtons(
             )
             Button(
                 onClick = {
-                    when (viewModel.pageIndex.value) {
-                        1 -> navController.navigate("${Screen.Second.route}?pokeName=${viewModel.pokemons.value[viewModel.selectedIndex.value].name}")
-                        2 -> navController.navigate(Screen.Third.route)
-                        3 -> navController.navigate(Screen.Fourth.route)
-                    }
-
-
+                    if (viewModel.pageIndex.value == Constants.MAX_PAGE_INDEX) return@Button
+                    viewModel.pageIndex.value += 1
                 },
                 content = {
                     Icon(
@@ -258,7 +270,7 @@ fun DirectionalButtons(
         }
         Button(
             onClick = {
-                if ((viewModel.selectedIndex.value == viewModel.pokemons.value.size - 1) || viewModel.pageIndex.value != 1) return@Button
+                if ((viewModel.selectedIndex.value == viewModel.pokemons.value.size - 1)) return@Button
                 viewModel.selectedIndex.value += 1
                 noteIsVisibleState.value = true
                 if (viewModel.noteOffsetValue.value == PokedexViewModel.NoteAnimationValue.START.step) {
@@ -290,7 +302,6 @@ fun DirectionalButtons(
 
 @Composable
 fun StartButton(
-    navController: NavHostController,
     viewModel: PokedexViewModel,
     modifier: Modifier = Modifier
 ) {
@@ -300,7 +311,7 @@ fun StartButton(
             Button(
                 onClick = {
                     if (viewModel.pageIndex.value != 1) {
-                        navController.navigate(Screen.Home.route)
+                        //TODO go to list page
                     }
                 },
                 modifier = Modifier.size(height = 10.dp, width = 40.dp),

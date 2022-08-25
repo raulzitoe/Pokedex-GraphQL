@@ -17,8 +17,6 @@ import com.example.pokedexgraphql.viewmodel.PokedexViewModel
 fun ThirdScreen(
     viewModel: PokedexViewModel
 ) {
-    viewModel.pageIndex.value = 3
-
     Surface(color = Color.Transparent) {
         Column(modifier = Modifier.fillMaxSize().padding(5.dp)) {
             Text(

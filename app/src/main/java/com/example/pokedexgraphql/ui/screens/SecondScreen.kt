@@ -8,6 +8,7 @@ import coil.compose.AsyncImage
 import androidx.compose.material.Card
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -24,23 +25,9 @@ import com.example.pokedexgraphql.viewmodel.PokedexViewModel
 fun SecondScreen(
     viewModel: PokedexViewModel, pokeName: String
 ) {
-    viewModel.pageIndex.value = 2
-    val lifecycleOwner = LocalLifecycleOwner.current
-    DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_START) {
-                viewModel.getPokemonByName(pokeName)
-            }
-            if (event == Lifecycle.Event.ON_DESTROY) {
-                viewModel.clearPokemon()
-            }
-        }
-
-        lifecycleOwner.lifecycle.addObserver(observer)
-
-        // When the effect leaves the Composition, remove the observer
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(observer)
+    LaunchedEffect(viewModel.pageIndex.value){
+        if(viewModel.pageIndex.value == 1){
+            viewModel.getPokemonByName()
         }
     }
 

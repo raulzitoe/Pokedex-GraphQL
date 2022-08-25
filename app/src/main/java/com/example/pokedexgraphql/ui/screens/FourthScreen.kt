@@ -10,15 +10,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import com.example.pokedexgraphql.ui.navigation.Screen
 import com.example.pokedexgraphql.viewmodel.PokedexViewModel
 
 @Composable
 fun FourthScreen(
-    navController: NavController, viewModel: PokedexViewModel
+    viewModel: PokedexViewModel
 ) {
-    viewModel.pageIndex.value = 4
     Surface(color = Color.Transparent) {
         Column(
             modifier = Modifier
@@ -52,7 +49,7 @@ fun FourthScreen(
                 )
                 viewModel.pokemon.value.evolutions?.map { item -> item?.name }?.forEach {
                     Button(
-                        onClick = { navController.navigate("${Screen.Second.route}?pokeName=${it}") },
+                        onClick = { },
                         modifier = Modifier.padding(end = 3.dp).height(30.dp),
                         contentPadding = PaddingValues(start = 5.dp, end = 5.dp, top = 2.dp, bottom = 2.dp)
                     ) {

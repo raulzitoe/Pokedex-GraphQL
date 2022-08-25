@@ -2,7 +2,6 @@ package com.example.pokedexgraphql.viewmodel
 
 import android.content.Context
 import android.speech.tts.TextToSpeech
-import android.util.Log
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.*
 import androidx.compose.ui.unit.Dp
@@ -21,7 +20,7 @@ import javax.inject.Inject
 class PokedexViewModel @Inject constructor() : ViewModel() {
     val pokemons: MutableState<List<PokemonDBQuery.Pokemon>> = mutableStateOf(emptyList())
     val selectedIndex = mutableStateOf(0)
-    val pageIndex = mutableStateOf(1)
+    val pageIndex = mutableStateOf(0)
     val listState = LazyListState(0, 0)
     val pokemon: MutableState<PokemonByNameQuery.Pokemon> = mutableStateOf(
         PokemonByNameQuery.Pokemon(
@@ -54,16 +53,16 @@ class PokedexViewModel @Inject constructor() : ViewModel() {
         START(2.dp), FINISH(20.dp)
     }
 
-    fun getPokemons() {
+    private fun getPokemons() {
         viewModelScope.launch {
-            Log.e("risos", "entrou")
             GraphQLManager.getPokemons().data?.pokemons?.mapNotNull { it }?.let {
                 pokemons.value = it
             }
         }
     }
 
-    fun getPokemonByName(name: String) {
+    fun getPokemonByName() {
+        val name = pokemons.value[selectedIndex.value].name ?: ""
         viewModelScope.launch {
             GraphQLManager.getPokemonByName(name).data?.pokemon?.let {
                 pokemon.value = it
