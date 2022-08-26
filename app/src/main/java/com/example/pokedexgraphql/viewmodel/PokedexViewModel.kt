@@ -10,11 +10,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.pokedexgraphql.GraphQLManager
 import com.example.pokedexgraphql.graphql.PokemonByNameQuery
-import com.example.pokedexgraphql.graphql.PokemonDBQuery
 import com.example.pokedexgraphql.ui.state.FirstScreenState
 import com.example.pokedexgraphql.ui.state.FourthScreenState
 import com.example.pokedexgraphql.ui.state.SecondScreenState
 import com.example.pokedexgraphql.ui.state.ThirdScreenState
+import com.example.pokedexgraphql.utils.Constants
+import com.example.pokedexgraphql.utils.Direction
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import java.util.*
@@ -22,12 +23,11 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PokedexViewModel @Inject constructor() : ViewModel() {
-//    val pokemons: MutableState<List<PokemonDBQuery.Pokemon>> = mutableStateOf(emptyList())
     val selectedIndex = mutableStateOf(0)
     val pageIndex = mutableStateOf(0)
     val listState = LazyListState(0, 0)
     val noteOffsetValue = mutableStateOf(NoteAnimationValue.START.step)
-    private  var  textToSpeech:TextToSpeech? = null
+    private var textToSpeech: TextToSpeech? = null
     var firstScreenState by mutableStateOf(FirstScreenState())
         private set
     var secondScreenState by mutableStateOf(SecondScreenState())
@@ -36,12 +36,13 @@ class PokedexViewModel @Inject constructor() : ViewModel() {
         private set
     var fourthScreenState by mutableStateOf(FourthScreenState())
         private set
+    val noteIsVisibleState = mutableStateOf(false)
 
     init {
         getPokemons()
     }
 
-    enum class NoteAnimationValue(val step: Dp){
+    enum class NoteAnimationValue(val step: Dp) {
         START(2.dp), FINISH(20.dp)
     }
 
@@ -66,7 +67,7 @@ class PokedexViewModel @Inject constructor() : ViewModel() {
                 thirdScreenState = ThirdScreenState(
                     name = it.name ?: "",
                     number = it.number ?: "",
-                    types = it.types?.mapNotNull { type -> type} ?: emptyList(),
+                    types = it.types?.mapNotNull { type -> type } ?: emptyList(),
                     maxHP = it.maxHP ?: 0,
                     maxCP = it.maxCP ?: 0,
                     minWeight = it.weight?.minimum ?: "",
@@ -76,10 +77,11 @@ class PokedexViewModel @Inject constructor() : ViewModel() {
                 )
 
                 fourthScreenState = FourthScreenState(
-                    resistant = it.resistant?.mapNotNull { resistant -> resistant} ?: emptyList(),
-                    weaknesses = it.weaknesses?.mapNotNull { resistant -> resistant} ?: emptyList(),
+                    resistant = it.resistant?.mapNotNull { resistant -> resistant } ?: emptyList(),
+                    weaknesses = it.weaknesses?.mapNotNull { resistant -> resistant }
+                        ?: emptyList(),
                     attacks = it.attacks?.let { attacks -> getPokemonAttacks(attacks) } ?: "",
-                    evolutions = it.evolutions?.mapNotNull { evolution -> evolution} ?: emptyList()
+                    evolutions = it.evolutions?.mapNotNull { evolution -> evolution } ?: emptyList()
                 )
             }
         }
@@ -96,13 +98,7 @@ class PokedexViewModel @Inject constructor() : ViewModel() {
         return list.joinToString()
     }
 
-    fun animateScroll() {
-        viewModelScope.launch {
-            listState.animateScrollToItem(selectedIndex.value)
-        }
-    }
-
-    fun textToSpeech(context: Context){
+    fun textToSpeech(context: Context) {
         textToSpeech = TextToSpeech(
             context
         ) {
@@ -117,6 +113,43 @@ class PokedexViewModel @Inject constructor() : ViewModel() {
                         null
                     )
                 }
+            }
+        }
+    }
+
+    fun handleDirectionalClick(direction: Direction) {
+        when (direction) {
+            Direction.UP -> {
+                if (selectedIndex.value == 0) return
+                selectedIndex.value -= 1
+                noteIsVisibleState.value = true
+                if (noteOffsetValue.value == NoteAnimationValue.START.step) {
+                    noteOffsetValue.value =
+                        NoteAnimationValue.FINISH.step
+                } else {
+                    noteOffsetValue.value =
+                        NoteAnimationValue.START.step
+                }
+            }
+            Direction.DOWN -> {
+                if ((selectedIndex.value == firstScreenState.pokemons.size - 1)) return
+                selectedIndex.value += 1
+                noteIsVisibleState.value = true
+                if (noteOffsetValue.value == NoteAnimationValue.START.step) {
+                    noteOffsetValue.value =
+                        NoteAnimationValue.FINISH.step
+                } else {
+                    noteOffsetValue.value =
+                        NoteAnimationValue.START.step
+                }
+            }
+            Direction.LEFT -> {
+                if (pageIndex.value == 0) return
+                pageIndex.value -= 1
+            }
+            Direction.RIGHT -> {
+                if (pageIndex.value == Constants.MAX_PAGE_INDEX) return
+                pageIndex.value += 1
             }
         }
     }

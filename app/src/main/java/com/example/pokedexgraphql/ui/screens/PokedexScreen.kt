@@ -30,7 +30,7 @@ import com.example.pokedexgraphql.ui.state.FirstScreenState
 import com.example.pokedexgraphql.ui.state.FourthScreenState
 import com.example.pokedexgraphql.ui.state.SecondScreenState
 import com.example.pokedexgraphql.ui.state.ThirdScreenState
-import com.example.pokedexgraphql.utils.Constants
+import com.example.pokedexgraphql.utils.Direction
 import com.example.pokedexgraphql.viewmodel.PokedexViewModel
 import com.example.pokedexgraphql.utils.OvalShape
 import com.google.accompanist.pager.ExperimentalPagerApi
@@ -43,7 +43,6 @@ fun PokedexScreen(
     viewModel: PokedexViewModel = hiltViewModel()
 ) {
     val infiniteTransition = rememberInfiniteTransition()
-    val noteIsVisibleState = remember { mutableStateOf(false) }
     val speakTextState = remember { mutableStateOf(false) }
     val context = LocalContext.current
     val firstScreenState = viewModel.firstScreenState
@@ -63,7 +62,7 @@ fun PokedexScreen(
             animation = tween(durationMillis = 200),
             repeatMode = RepeatMode.Reverse
         ),
-        finishedListener = { noteIsVisibleState.value = false }
+        finishedListener = { viewModel.noteIsVisibleState.value = false }
     )
 
     val animatedColor by infiniteTransition.animateColor(
@@ -119,7 +118,7 @@ fun PokedexScreen(
             ) {
                 DrawSpeaker(
                     offsetNoteAnimation = offsetNoteAnimation,
-                    noteIsVisible = noteIsVisibleState.value
+                    noteIsVisible = viewModel.noteIsVisibleState.value
                 )
                 StartButton(
                     modifier = Modifier.padding(10.dp),
@@ -128,10 +127,8 @@ fun PokedexScreen(
                     }
                 )
                 DirectionalButtons(
-                    viewModel = viewModel,
-                    noteIsVisibleState = noteIsVisibleState,
                     speakTextState = speakTextState,
-                    firstScreenState = firstScreenState
+                    onClick = { direction -> viewModel.handleDirectionalClick(direction)  }
                 )
             }
         }
@@ -211,10 +208,8 @@ fun DrawMiniScreen(
 
 @Composable
 fun DirectionalButtons(
-    viewModel: PokedexViewModel,
-    noteIsVisibleState: MutableState<Boolean>,
     speakTextState: MutableState<Boolean>,
-    firstScreenState: FirstScreenState
+    onClick: (Direction) -> Unit
 ) {
 
     Column(
@@ -222,16 +217,7 @@ fun DirectionalButtons(
     ) {
         Button(
             onClick = {
-                if (viewModel.selectedIndex.value == 0) return@Button
-                viewModel.selectedIndex.value -= 1
-                noteIsVisibleState.value = true
-                if (viewModel.noteOffsetValue.value == PokedexViewModel.NoteAnimationValue.START.step) {
-                    viewModel.noteOffsetValue.value =
-                        PokedexViewModel.NoteAnimationValue.FINISH.step
-                } else {
-                    viewModel.noteOffsetValue.value =
-                        PokedexViewModel.NoteAnimationValue.START.step
-                }
+                onClick(Direction.UP)
                 speakTextState.value = true
             },
             content = {
@@ -251,8 +237,7 @@ fun DirectionalButtons(
         Row {
             Button(
                 onClick = {
-                    if (viewModel.pageIndex.value == 0) return@Button
-                    viewModel.pageIndex.value -= 1
+                    onClick(Direction.LEFT)
                 },
                 content = {
                     Icon(
@@ -277,8 +262,7 @@ fun DirectionalButtons(
             )
             Button(
                 onClick = {
-                    if (viewModel.pageIndex.value == Constants.MAX_PAGE_INDEX) return@Button
-                    viewModel.pageIndex.value += 1
+                    onClick(Direction.RIGHT)
                 },
                 content = {
                     Icon(
@@ -297,16 +281,7 @@ fun DirectionalButtons(
         }
         Button(
             onClick = {
-                if ((viewModel.selectedIndex.value == firstScreenState.pokemons.size - 1)) return@Button
-                viewModel.selectedIndex.value += 1
-                noteIsVisibleState.value = true
-                if (viewModel.noteOffsetValue.value == PokedexViewModel.NoteAnimationValue.START.step) {
-                    viewModel.noteOffsetValue.value =
-                        PokedexViewModel.NoteAnimationValue.FINISH.step
-                } else {
-                    viewModel.noteOffsetValue.value =
-                        PokedexViewModel.NoteAnimationValue.START.step
-                }
+                onClick(Direction.DOWN)
                 speakTextState.value = true
             },
             content = {
@@ -348,8 +323,8 @@ fun StartButton(
 }
 
 @Composable
-fun DrawSpeaker(modifier: Modifier = Modifier, offsetNoteAnimation: Dp, noteIsVisible: Boolean) {
-    Box() {
+fun DrawSpeaker(offsetNoteAnimation: Dp, noteIsVisible: Boolean) {
+    Box {
         Image(
             painter = painterResource(id = R.drawable.ic_speaker_grill),
             modifier = Modifier.size(width = 100.dp, height = 100.dp),
