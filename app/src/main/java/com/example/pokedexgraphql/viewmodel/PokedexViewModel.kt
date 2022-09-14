@@ -10,10 +10,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.pokedexgraphql.GraphQLManager
 import com.example.pokedexgraphql.graphql.PokemonByNameQuery
-import com.example.pokedexgraphql.ui.state.FirstScreenState
-import com.example.pokedexgraphql.ui.state.FourthScreenState
-import com.example.pokedexgraphql.ui.state.SecondScreenState
-import com.example.pokedexgraphql.ui.state.ThirdScreenState
+import com.example.pokedexgraphql.ui.state.*
 import com.example.pokedexgraphql.utils.Constants
 import com.example.pokedexgraphql.utils.Direction
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -23,20 +20,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PokedexViewModel @Inject constructor() : ViewModel() {
-    val selectedIndex = mutableStateOf(0)
-    val pageIndex = mutableStateOf(0)
-    val listState = LazyListState(0, 0)
-    val noteOffsetValue = mutableStateOf(NoteAnimationValue.START.step)
     private var textToSpeech: TextToSpeech? = null
-    var firstScreenState by mutableStateOf(FirstScreenState())
+    var pokedexScreenState by mutableStateOf(PokedexScreenState())
         private set
-    var secondScreenState by mutableStateOf(SecondScreenState())
-        private set
-    var thirdScreenState by mutableStateOf(ThirdScreenState())
-        private set
-    var fourthScreenState by mutableStateOf(FourthScreenState())
-        private set
-    val noteIsVisibleState = mutableStateOf(false)
 
     init {
         getPokemons()
@@ -49,22 +35,22 @@ class PokedexViewModel @Inject constructor() : ViewModel() {
     private fun getPokemons() {
         viewModelScope.launch {
             GraphQLManager.getPokemons().data?.pokemons?.mapNotNull { it }?.let {
-                firstScreenState = FirstScreenState(it)
+                pokedexScreenState.firstScreenState.value = FirstScreenState(it)
             }
         }
     }
 
     fun getPokemonByName() {
-        val name = firstScreenState.pokemons[selectedIndex.value].name ?: ""
+        val name = pokedexScreenState.firstScreenState.value.pokemons[pokedexScreenState.selectedIndex].name ?: ""
         viewModelScope.launch {
             GraphQLManager.getPokemonByName(name).data?.pokemon?.let {
-                secondScreenState = SecondScreenState(
+                pokedexScreenState.secondScreenState.value = SecondScreenState(
                     name = it.name ?: "",
                     classification = it.classification ?: "",
                     image = it.image,
                 )
 
-                thirdScreenState = ThirdScreenState(
+                pokedexScreenState.thirdScreenState.value = ThirdScreenState(
                     name = it.name ?: "",
                     number = it.number ?: "",
                     types = it.types?.mapNotNull { type -> type } ?: emptyList(),
@@ -76,7 +62,7 @@ class PokedexViewModel @Inject constructor() : ViewModel() {
                     maxHeight = it.height?.maximum ?: ""
                 )
 
-                fourthScreenState = FourthScreenState(
+                pokedexScreenState.fourthScreenState.value = FourthScreenState(
                     resistant = it.resistant?.mapNotNull { resistant -> resistant } ?: emptyList(),
                     weaknesses = it.weaknesses?.mapNotNull { resistant -> resistant }
                         ?: emptyList(),
@@ -107,7 +93,7 @@ class PokedexViewModel @Inject constructor() : ViewModel() {
                     txtToSpeech.language = Locale.US
                     txtToSpeech.setSpeechRate(1.0f)
                     txtToSpeech.speak(
-                        firstScreenState.pokemons[selectedIndex.value].name,
+                        pokedexScreenState.firstScreenState.value.pokemons[pokedexScreenState.selectedIndex].name,
                         TextToSpeech.QUEUE_ADD,
                         null,
                         null
@@ -120,36 +106,36 @@ class PokedexViewModel @Inject constructor() : ViewModel() {
     fun handleDirectionalClick(direction: Direction) {
         when (direction) {
             Direction.UP -> {
-                if (selectedIndex.value == 0) return
-                selectedIndex.value -= 1
-                noteIsVisibleState.value = true
-                if (noteOffsetValue.value == NoteAnimationValue.START.step) {
-                    noteOffsetValue.value =
+                if (pokedexScreenState.selectedIndex == 0) return
+                pokedexScreenState.selectedIndex -= 1
+                pokedexScreenState.noteIsVisibleState.value = true
+                if (pokedexScreenState.noteOffsetValue.value == NoteAnimationValue.START.step) {
+                    pokedexScreenState.noteOffsetValue.value =
                         NoteAnimationValue.FINISH.step
                 } else {
-                    noteOffsetValue.value =
+                    pokedexScreenState.noteOffsetValue.value =
                         NoteAnimationValue.START.step
                 }
             }
             Direction.DOWN -> {
-                if ((selectedIndex.value == firstScreenState.pokemons.size - 1)) return
-                selectedIndex.value += 1
-                noteIsVisibleState.value = true
-                if (noteOffsetValue.value == NoteAnimationValue.START.step) {
-                    noteOffsetValue.value =
+                if ((pokedexScreenState.selectedIndex == pokedexScreenState.firstScreenState.value.pokemons.size - 1)) return
+                pokedexScreenState.selectedIndex += 1
+                pokedexScreenState.noteIsVisibleState.value = true
+                if (pokedexScreenState.noteOffsetValue.value == NoteAnimationValue.START.step) {
+                    pokedexScreenState.noteOffsetValue.value =
                         NoteAnimationValue.FINISH.step
                 } else {
-                    noteOffsetValue.value =
+                    pokedexScreenState.noteOffsetValue.value =
                         NoteAnimationValue.START.step
                 }
             }
             Direction.LEFT -> {
-                if (pageIndex.value == 0) return
-                pageIndex.value -= 1
+                if (pokedexScreenState.pageIndex.value == 0) return
+                pokedexScreenState.pageIndex.value -= 1
             }
             Direction.RIGHT -> {
-                if (pageIndex.value == Constants.MAX_PAGE_INDEX) return
-                pageIndex.value += 1
+                if (pokedexScreenState.pageIndex.value == Constants.MAX_PAGE_INDEX) return
+                pokedexScreenState.pageIndex.value += 1
             }
         }
     }

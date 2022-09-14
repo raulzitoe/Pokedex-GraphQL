@@ -19,19 +19,13 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.pokedexgraphql.R
-import com.example.pokedexgraphql.ui.state.FirstScreenState
-import com.example.pokedexgraphql.ui.state.FourthScreenState
-import com.example.pokedexgraphql.ui.state.SecondScreenState
-import com.example.pokedexgraphql.ui.state.ThirdScreenState
+import com.example.pokedexgraphql.ui.state.*
 import com.example.pokedexgraphql.utils.Direction
-import com.example.pokedexgraphql.viewmodel.PokedexViewModel
 import com.example.pokedexgraphql.utils.OvalShape
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
@@ -40,29 +34,27 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun PokedexScreen(
-    viewModel: PokedexViewModel = hiltViewModel()
+    uiState: PokedexScreenState,
+    onSpeakText: () -> Unit,
+    onPageIndexChange: () -> Unit,
+    onClickDirectional: (Direction) -> Unit
 ) {
     val infiniteTransition = rememberInfiniteTransition()
     val speakTextState = remember { mutableStateOf(false) }
-    val context = LocalContext.current
-    val firstScreenState = viewModel.firstScreenState
-    val secondScreenState = viewModel.secondScreenState
-    val thirdScreenState = viewModel.thirdScreenState
-    val fourthScreenState = viewModel.fourthScreenState
 
     if (speakTextState.value) {
-        viewModel.textToSpeech(context)
+        onSpeakText()
         speakTextState.value = false
     }
 
     val offsetNoteAnimation by animateDpAsState(
-        targetValue = viewModel.noteOffsetValue.value,
+        targetValue = uiState.noteOffsetValue.value,
         animationSpec = repeatable(
             iterations = 7,
             animation = tween(durationMillis = 200),
             repeatMode = RepeatMode.Reverse
         ),
-        finishedListener = { viewModel.noteIsVisibleState.value = false }
+        finishedListener = { uiState.noteIsVisibleState.value = false }
     )
 
     val animatedColor by infiniteTransition.animateColor(
@@ -103,12 +95,8 @@ fun PokedexScreen(
                     .padding(start = 20.dp, end = 20.dp, top = 0.dp)
             ) {
                 DrawMiniScreen(
-                    firstScreenState = firstScreenState,
-                    secondScreenState = secondScreenState,
-                    thirdScreenState = thirdScreenState,
-                    fourthScreenState = fourthScreenState,
-                    viewModel = viewModel,
-                    pageIndex = viewModel.pageIndex.value
+                    onPageIndexChange = { onPageIndexChange() },
+                    pokedexScreenState = uiState
                 )
             }
             Row(
@@ -118,17 +106,17 @@ fun PokedexScreen(
             ) {
                 DrawSpeaker(
                     offsetNoteAnimation = offsetNoteAnimation,
-                    noteIsVisible = viewModel.noteIsVisibleState.value
+                    noteIsVisible = uiState.noteIsVisibleState.value
                 )
                 StartButton(
                     modifier = Modifier.padding(10.dp),
                     onClick = {
-                        viewModel.pageIndex.value = 0
+                        uiState.pageIndex.value = 0
                     }
                 )
                 DirectionalButtons(
                     speakTextState = speakTextState,
-                    onClick = { direction -> viewModel.handleDirectionalClick(direction)  }
+                    onClick = { direction -> onClickDirectional(direction) }
                 )
             }
         }
@@ -150,19 +138,15 @@ fun DrawBackground() {
 @OptIn(ExperimentalPagerApi::class)
 @Composable
 fun DrawMiniScreen(
-    viewModel: PokedexViewModel,
-    pageIndex: Int,
-    firstScreenState: FirstScreenState,
-    secondScreenState: SecondScreenState,
-    thirdScreenState: ThirdScreenState,
-    fourthScreenState: FourthScreenState
+    pokedexScreenState: PokedexScreenState,
+    onPageIndexChange: () -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
     val pagerState = rememberPagerState()
 
-    LaunchedEffect(pageIndex) {
+    LaunchedEffect(pokedexScreenState.pageIndex.value) {
         coroutineScope.launch {
-            pagerState.animateScrollToPage(pageIndex)
+            pagerState.animateScrollToPage(pokedexScreenState.pageIndex.value)
         }
     }
 
@@ -188,18 +172,18 @@ fun DrawMiniScreen(
             HorizontalPager(count = 4, state = pagerState) { page ->
                 when (page) {
                     0 -> FirstScreen(
-                        listIndex = viewModel.selectedIndex.value,
-                        listState = viewModel.listState,
-                        onIndexChange = { index -> viewModel.selectedIndex.value = index },
-                        uiState = firstScreenState
+                        listIndex = pokedexScreenState.selectedIndex,
+                        listState = pokedexScreenState.listState,
+                        onIndexChange = { index -> pokedexScreenState.selectedIndex = index },
+                        uiState = pokedexScreenState.firstScreenState.value
                     )
                     1 -> SecondScreen(
-                        uiState = secondScreenState,
-                        onPageIndexChange = { viewModel.getPokemonByName() },
-                        pageIndex = viewModel.pageIndex.value
+                        uiState = pokedexScreenState.secondScreenState.value,
+                        onPageIndexChange = { onPageIndexChange() },
+                        pageIndex = pokedexScreenState.pageIndex.value
                     )
-                    2 -> ThirdScreen(uiState = thirdScreenState)
-                    3 -> FourthScreen(uiState = fourthScreenState)
+                    2 -> ThirdScreen(uiState = pokedexScreenState.thirdScreenState.value)
+                    3 -> FourthScreen(uiState = pokedexScreenState.fourthScreenState.value)
                 }
             }
         }
@@ -417,24 +401,11 @@ fun LargeCamera(modifier: Modifier = Modifier) {
 
 @Preview(showBackground = true)
 @Composable
-fun Preview() {
-    LargeCamera()
+fun PokedexScreenPreview() {
+    PokedexScreen(
+        uiState = PokedexScreenState() ,
+        onSpeakText = {  },
+        onPageIndexChange = {  },
+        onClickDirectional = { }
+    )
 }
-
-//@Preview(showBackground = true)
-//@Composable
-//fun PokedexPreview() {
-//    PokedexScreen()
-//}
-//
-//@Preview
-//@Composable
-//fun MiniScreenPreview(){
-//    DrawMiniScreen(navController = rememberNavController())
-//}
-
-//@Preview
-//@Composable
-//fun DirectionalButtonsPreview() {
-//    DirectionalButtons(navController = rememberNavController())
-//}
