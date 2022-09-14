@@ -35,17 +35,10 @@ import kotlinx.coroutines.launch
 @Composable
 fun PokedexScreen(
     uiState: PokedexScreenState,
-    onSpeakText: () -> Unit,
     onPageIndexChange: () -> Unit,
     onClickDirectional: (Direction) -> Unit
 ) {
     val infiniteTransition = rememberInfiniteTransition()
-    val speakTextState = remember { mutableStateOf(false) }
-
-    if (speakTextState.value) {
-        onSpeakText()
-        speakTextState.value = false
-    }
 
     val offsetNoteAnimation by animateDpAsState(
         targetValue = uiState.noteOffsetValue.value,
@@ -115,7 +108,6 @@ fun PokedexScreen(
                     }
                 )
                 DirectionalButtons(
-                    speakTextState = speakTextState,
                     onClick = { direction -> onClickDirectional(direction) }
                 )
             }
@@ -192,7 +184,6 @@ fun DrawMiniScreen(
 
 @Composable
 fun DirectionalButtons(
-    speakTextState: MutableState<Boolean>,
     onClick: (Direction) -> Unit
 ) {
 
@@ -202,7 +193,6 @@ fun DirectionalButtons(
         Button(
             onClick = {
                 onClick(Direction.UP)
-                speakTextState.value = true
             },
             content = {
                 Icon(
@@ -266,7 +256,6 @@ fun DirectionalButtons(
         Button(
             onClick = {
                 onClick(Direction.DOWN)
-                speakTextState.value = true
             },
             content = {
                 Icon(
@@ -404,7 +393,6 @@ fun LargeCamera(modifier: Modifier = Modifier) {
 fun PokedexScreenPreview() {
     PokedexScreen(
         uiState = PokedexScreenState() ,
-        onSpeakText = {  },
         onPageIndexChange = {  },
         onClickDirectional = { }
     )

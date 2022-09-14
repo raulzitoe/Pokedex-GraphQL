@@ -10,7 +10,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.pokedexgraphql.ui.screens.PokedexScreen
-import com.example.pokedexgraphql.ui.state.PokedexScreenState
 import com.example.pokedexgraphql.ui.theme.PokedexGraphQLTheme
 import com.example.pokedexgraphql.viewmodel.PokedexViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -29,9 +28,8 @@ class MainActivity : ComponentActivity() {
                     val context = LocalContext.current
                     PokedexScreen(
                         uiState = viewModel.pokedexScreenState,
-                        onSpeakText = { viewModel.textToSpeech(context) },
                         onPageIndexChange = { viewModel.getPokemonByName() },
-                        onClickDirectional = { direction -> viewModel.handleDirectionalClick(direction)}
+                        onClickDirectional = { direction -> viewModel.handleDirectionalClick(direction, context)}
                     )
                 }
             }

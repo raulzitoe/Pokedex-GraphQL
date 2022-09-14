@@ -2,7 +2,7 @@ package com.example.pokedexgraphql.viewmodel
 
 import android.content.Context
 import android.speech.tts.TextToSpeech
-import androidx.compose.foundation.lazy.LazyListState
+import android.util.Log
 import androidx.compose.runtime.*
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -41,7 +41,9 @@ class PokedexViewModel @Inject constructor() : ViewModel() {
     }
 
     fun getPokemonByName() {
-        val name = pokedexScreenState.firstScreenState.value.pokemons[pokedexScreenState.selectedIndex].name ?: ""
+        val name =
+            pokedexScreenState.firstScreenState.value.pokemons[pokedexScreenState.selectedIndex].name
+                ?: ""
         viewModelScope.launch {
             GraphQLManager.getPokemonByName(name).data?.pokemon?.let {
                 pokedexScreenState.secondScreenState.value = SecondScreenState(
@@ -84,17 +86,19 @@ class PokedexViewModel @Inject constructor() : ViewModel() {
         return list.joinToString()
     }
 
-    fun textToSpeech(context: Context) {
+    private fun textToSpeech(context: Context) {
+        val time = System.currentTimeMillis()
         textToSpeech = TextToSpeech(
             context
         ) {
             if (it == TextToSpeech.SUCCESS) {
+                Log.e("asd", (System.currentTimeMillis() - time).toString())
                 textToSpeech?.let { txtToSpeech ->
                     txtToSpeech.language = Locale.US
                     txtToSpeech.setSpeechRate(1.0f)
                     txtToSpeech.speak(
                         pokedexScreenState.firstScreenState.value.pokemons[pokedexScreenState.selectedIndex].name,
-                        TextToSpeech.QUEUE_ADD,
+                        TextToSpeech.QUEUE_FLUSH,
                         null,
                         null
                     )
@@ -103,10 +107,10 @@ class PokedexViewModel @Inject constructor() : ViewModel() {
         }
     }
 
-    fun handleDirectionalClick(direction: Direction) {
+    fun handleDirectionalClick(direction: Direction, context: Context) {
         when (direction) {
             Direction.UP -> {
-                if (pokedexScreenState.selectedIndex == 0) return
+                if (pokedexScreenState.selectedIndex == 0 || pokedexScreenState.pageIndex.value != 0) return
                 pokedexScreenState.selectedIndex -= 1
                 pokedexScreenState.noteIsVisibleState.value = true
                 if (pokedexScreenState.noteOffsetValue.value == NoteAnimationValue.START.step) {
@@ -116,9 +120,11 @@ class PokedexViewModel @Inject constructor() : ViewModel() {
                     pokedexScreenState.noteOffsetValue.value =
                         NoteAnimationValue.START.step
                 }
+                textToSpeech(context)
             }
             Direction.DOWN -> {
-                if ((pokedexScreenState.selectedIndex == pokedexScreenState.firstScreenState.value.pokemons.size - 1)) return
+                if ((pokedexScreenState.selectedIndex == pokedexScreenState.firstScreenState.value.pokemons.size - 1)
+                    || pokedexScreenState.pageIndex.value != 0) return
                 pokedexScreenState.selectedIndex += 1
                 pokedexScreenState.noteIsVisibleState.value = true
                 if (pokedexScreenState.noteOffsetValue.value == NoteAnimationValue.START.step) {
@@ -128,6 +134,7 @@ class PokedexViewModel @Inject constructor() : ViewModel() {
                     pokedexScreenState.noteOffsetValue.value =
                         NoteAnimationValue.START.step
                 }
+                textToSpeech(context)
             }
             Direction.LEFT -> {
                 if (pokedexScreenState.pageIndex.value == 0) return
